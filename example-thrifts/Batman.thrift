@@ -20,7 +20,7 @@ struct Case {
     5: optional list<string> notes;
 }
 
-service BatmanServer {
+service BatPuter {
    string ping(),
    Villain getVillain(1: i32 villainId)
    Villain addVillian(

@@ -1,3 +1,4 @@
+import os
 import pytest
 from thrift_explorer import create_app
 
@@ -8,3 +9,11 @@ def client():
         "TESTING": True
     })
     yield app.test_client()
+
+@pytest.fixture()
+def thrift_directory():
+    return os.path.join(
+        os.path.dirname(os.path.realpath(__file__)),
+        "..",
+        "example-thrifts",
+    )
