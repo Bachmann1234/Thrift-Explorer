@@ -9,7 +9,12 @@ def create_app(test_config=None):
         app.config.from_mapping(
             SECRET_KEY=os.environ["SECRET_KEY"]
         )
+
     @app.route('/health')
     def hello():
         return 'Howdy!'
+
+    from . import thrift_api
+    app.register_blueprint(thrift_api.bp)
+
     return app
