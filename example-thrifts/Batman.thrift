@@ -21,7 +21,7 @@ struct Case {
 }
 
 service BatPuter {
-   string ping(),
+   void ping(),
    Villain getVillain(1: i32 villainId)
    Villain addVillian(
        1: string name, 
