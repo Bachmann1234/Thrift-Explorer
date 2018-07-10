@@ -1,16 +1,18 @@
 from thrift_explorer.thrift_manager import ThriftManager, ThriftService
 
-def test_list_modules(thrift_directory):
-    manager = ThriftManager(thrift_directory)
-    assert [
+def test_list_modules(example_thrift_directory):
+    manager = ThriftManager(example_thrift_directory)
+    expected = [
         ThriftService(
             'Batman.thrift',
             'BatPuter',
-            ['ping', 'getVillain', 'addVillian', 'saveCase']
+            ['ping', 'getVillain', 'addVillain', 'saveCase']
         ), 
         ThriftService(
             'todo.thrift',
             'TodoService',
             ['listTasks', 'getTask', 'createTask', 'completeTask']
         )
-    ] == manager.list_services()
+    ]
+    actual = manager.services
+    assert expected == actual

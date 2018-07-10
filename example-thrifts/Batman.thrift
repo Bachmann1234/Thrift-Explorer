@@ -9,13 +9,13 @@ enum CrimeType {
 struct Villain {
     1: required i32 villainId;
     2: required string name;
-    3: optional string description;
+    3: required string description;
     5: optional Core.Location hideoutLocation;
 }
 
 struct Case {
-    2: optional string caseName;
-    3: optional CrimeType CrimeType;
+    2: required string caseName;
+    3: required CrimeType CrimeType;
     4: optional Villain mainSuspect;
     5: optional list<string> notes;
 }
@@ -23,7 +23,7 @@ struct Case {
 service BatPuter {
    void ping(),
    Villain getVillain(1: i32 villainId)
-   Villain addVillian(
+   Villain addVillain(
        1: string name, 
        2: string description, 
        3: Core.Location hideoutLocation

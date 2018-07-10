@@ -11,9 +11,16 @@ def client():
     yield app.test_client()
 
 @pytest.fixture()
-def thrift_directory():
+def example_thrift_directory():
     return os.path.join(
         os.path.dirname(os.path.realpath(__file__)),
         "..",
         "example-thrifts",
+    )
+
+@pytest.fixture()
+def test_thrift_directory():
+    return os.path.join(
+        os.path.dirname(os.path.realpath(__file__)),
+        "test-thrifts",
     )
