@@ -3,6 +3,7 @@ import os
 import thriftpy
 from collections import namedtuple
 from thriftpy import thrift
+from thriftpy.thrift import TType
 
 """
 Container for a thrift service
@@ -88,14 +89,39 @@ MapType = namedtuple(
     ['keyType', 'valueType']
 )
 
-def _parse_thrift_endpoint(thrift_file, service, endpoint):
-    raise ValueError("Im not implemented yet")
+def _parse_arg(thrift_arg):
+    ttype_code, name, required = thrift_arg
+    return ThriftSpec(
+        ttype=TType._VALUES_TO_NAMES[ttype_code],
+        name=name,
+        type_info=None,
+        required=required
+    )
 
-def _parse_thrift_service(thrift_file, service, endpoints):
+def _parse_result(thrift_result):
+    # I think this will diverge from _parse_arg... but if not remove it
+    ttype_code, name, required = thrift_result
+    return ThriftSpec(
+        ttype=TType._VALUES_TO_NAMES[ttype_code],
+        name=name,
+        type_info=None,
+        required=required
+    )
+
+def parse_thrift_endpoint(thrift_file, service, endpoint):
+    endpoint_args = getattr(service, '{}_args'.format(endpoint))
+    endpoint_results = getattr(service, '{}_result'.format(endpoint))
+    return ServiceEndpoint(
+        name=endpoint,
+        args = [_parse_arg(arg) for arg in endpoint_args.thrift_spec.values()],
+        results = [_parse_result(result) for result in endpoint_results.thrift_spec.values()]
+    )
+
+def parse_thrift_service(thrift_file, service, endpoints):
     return ThriftService(
         thrift_file,
         service.__name__,
-        [_parse_thrift_endpoint(thrift_file, service, endpoint) for endpoint in endpoints]
+        [parse_thrift_endpoint(thrift_file, service, endpoint) for endpoint in endpoints]
     )
 
 def _load_thrifts(thrift_directory):
@@ -111,7 +137,7 @@ def _parse_services(thrifts):
     for thrift_file, module in thrifts.items():
         for thrift_service in module.__thrift_meta__['services']:
             result.append(
-                _parse_thrift_service(
+                parse_thrift_service(
                     thrift_file,
                     thrift_service,
                     # I'm a bit confused why this is called services and not 'methods' or 'endpoints'
