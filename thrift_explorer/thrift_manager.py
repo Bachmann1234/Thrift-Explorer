@@ -1,150 +1,89 @@
 import glob
 import os
-import thriftpy
 from collections import namedtuple
+import thriftpy
 from thriftpy import thrift
 from thriftpy.thrift import TType
-
-"""
-Container for a thrift service
-thrift_file: str
-    Name of the thrift file this service came from
-name: str
-    Name of the service
-endpoints: list[ServiceEndpoint]
-    What endpoints can be called on this service
-"""
-ThriftService = namedtuple(
-    'ThriftService', 
-    ['thrift_file', 'name', 'endpoints']
+from thrift_explorer.thrift_models import (
+    BaseType,
+    CollectionType,
+    ThriftService,
+    ThriftSpec,
+    ServiceEndpoint,
 )
 
-"""
-Container representing a specific thrift service endpoint
-name: str
-    Name of the endpoint
-args: list[ThriftSpec]
-    Arguments this service takes in
-results: list[ThriftSpec]
-    The result of the method. Its a list because a thrift endpoint
-    can have a return value (labeled success) and possibly an exception
-    (labeled by the exception name)
-"""
-ServiceEndpoint = namedtuple(
-    'ServiceEndpoint',
-    ['name', 'args', 'results']
-)
 
-"""
-Container for the specification of an argument
-or a result.
+def _parse_type(ttype_code, type_info):
+    ttype = TType._VALUES_TO_NAMES[ttype_code]
+    if type_info == None:
+        return BaseType(ttype)
+    elif ttype in set(["SET", "LIST"]):
+        return CollectionType(ttype=ttype, valueType=_parse_type(type_info, None))
+    elif ttype == "MAP":
+        pass
+    elif ttype == "STRUCT":
+        pass
+    else:
+        raise ValueError("I dont know how to parse {}".format(ttype))
 
-ttype: str
-    Thrift Type the spec is representing
-name: str
-    Name of the argument/result
-type_info: None|StructType|CollectionType|MapType
-    If the spec is not a base thrift type this will contain
-    info required to specify the complex type
-required: bool
-    True if the spec is required in a request/response
-    False otherwise
-"""
-ThriftSpec = namedtuple(
-    'ThriftSpec',
-    ['ttype', 'name', 'type_info', 'required']
-)
 
-"""
-Spec for a particular Struct
-name: str
-    Name of the struct
-properties: list[ThriftSpec]
-    Each property of the struct is its own spec
-"""
-StructType = namedtuple(
-    'StructType',
-    ['struct_name', 'properties']
-)
-
-"""
-Spec for a list or a set type
-valueType: ThriftSpec
-    Specification for the type the collection contains
-"""
-CollectionType = namedtuple(
-    'CollectionType',
-    ['valueType']
-)
-
-"""
-Spec for a map type
-keyType: ThriftSpec
-    Specification for the type of the key of the map
-keyType: ThriftSpec
-    Specification for the type of the value of the map
-"""
-MapType = namedtuple(
-    'MapType',
-    ['keyType', 'valueType']
-)
-
-def _parse_arg(thrift_arg):
-    ttype_code, name, required = thrift_arg
+def _parse_arg(thrift_arg):  # Consider renaming?
+    try:
+        ttype_code, name, required = thrift_arg
+        type_info = None
+    except ValueError:
+        ttype_code, name, type_info, required = thrift_arg
     return ThriftSpec(
-        ttype=TType._VALUES_TO_NAMES[ttype_code],
-        name=name,
-        type_info=None,
-        required=required
+        name=name, type_info=_parse_type(ttype_code, type_info), required=required
     )
 
-def _parse_result(thrift_result):
-    # I think this will diverge from _parse_arg... but if not remove it
-    ttype_code, name, required = thrift_result
-    return ThriftSpec(
-        ttype=TType._VALUES_TO_NAMES[ttype_code],
-        name=name,
-        type_info=None,
-        required=required
-    )
 
 def parse_thrift_endpoint(thrift_file, service, endpoint):
-    endpoint_args = getattr(service, '{}_args'.format(endpoint))
-    endpoint_results = getattr(service, '{}_result'.format(endpoint))
+    endpoint_args = getattr(service, "{}_args".format(endpoint))
+    endpoint_results = getattr(service, "{}_result".format(endpoint))
     return ServiceEndpoint(
         name=endpoint,
-        args = [_parse_arg(arg) for arg in endpoint_args.thrift_spec.values()],
-        results = [_parse_result(result) for result in endpoint_results.thrift_spec.values()]
+        args=[_parse_arg(arg) for arg in endpoint_args.thrift_spec.values()],
+        results=[
+            _parse_arg(result) for result in endpoint_results.thrift_spec.values()
+        ],
     )
+
 
 def parse_thrift_service(thrift_file, service, endpoints):
     return ThriftService(
         thrift_file,
         service.__name__,
-        [parse_thrift_endpoint(thrift_file, service, endpoint) for endpoint in endpoints]
+        [
+            parse_thrift_endpoint(thrift_file, service, endpoint)
+            for endpoint in endpoints
+        ],
     )
 
+
 def _load_thrifts(thrift_directory):
-        thrifts = {}
-        search_path = os.path.join(thrift_directory, "**/*thrift")
-        for thrift_path in glob.iglob(search_path, recursive=True):
-            thrift_filename = os.path.basename(thrift_path)
-            thrifts[thrift_filename] = thriftpy.load(thrift_path)
-        return thrifts
+    thrifts = {}
+    search_path = os.path.join(thrift_directory, "**/*thrift")
+    for thrift_path in glob.iglob(search_path, recursive=True):
+        thrift_filename = os.path.basename(thrift_path)
+        thrifts[thrift_filename] = thriftpy.load(thrift_path)
+    return thrifts
+
 
 def _parse_services(thrifts):
     result = []
     for thrift_file, module in thrifts.items():
-        for thrift_service in module.__thrift_meta__['services']:
+        for thrift_service in module.__thrift_meta__["services"]:
             result.append(
                 parse_thrift_service(
                     thrift_file,
                     thrift_service,
                     # I'm a bit confused why this is called services and not 'methods' or 'endpoints'
-                    thrift_service.thrift_services
+                    thrift_service.thrift_services,
                 )
             )
     return result
+
 
 class ThriftManager(object):
     def __init__(self, thrift_directory):

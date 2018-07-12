@@ -17,10 +17,3 @@ def example_thrift_directory():
         "..",
         "example-thrifts",
     )
-
-@pytest.fixture()
-def test_thrift_directory():
-    return os.path.join(
-        os.path.dirname(os.path.realpath(__file__)),
-        "test-thrifts",
-    )
