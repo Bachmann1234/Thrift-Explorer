@@ -7,21 +7,19 @@ todo_thrift = thriftpy.load(
         os.path.dirname(os.path.realpath(__file__)),
         "..",
         "example-thrifts",
-        "todo.thrift"
+        "todo.thrift",
     ),
-    module_name="todo_thrift"
+    module_name="todo_thrift",
 )
+
 
 def clear_all_tasks(client):
     for task in client.listTasks():
         client.completeTask(task.taskId)
 
+
 def main():
-    client = make_client(
-        todo_thrift.TodoService, 
-        '127.0.0.1', 
-        6000
-    )
+    client = make_client(todo_thrift.TodoService, "127.0.0.1", 6000)
     print("Clear tasks")
     clear_all_tasks(client)
     assert not client.listTasks()
@@ -39,8 +37,9 @@ def main():
     print("list tasks")
     tasks = client.listTasks()
     print(tasks)
-    assert [task, second_task] == tasks 
+    assert [task, second_task] == tasks
     clear_all_tasks(client)
-    
-if __name__ == '__main__':
+
+
+if __name__ == "__main__":
     main()

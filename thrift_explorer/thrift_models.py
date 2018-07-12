@@ -1,5 +1,6 @@
 import attr
 
+
 @attr.s(frozen=True)
 class ThriftService(object):
     """
@@ -11,6 +12,7 @@ class ThriftService(object):
     endpoints: list[ServiceEndpoint]
         What endpoints can be called on this service
     """
+
     thrift_file = attr.ib()
     name = attr.ib()
     endpoints = attr.ib()
@@ -29,6 +31,7 @@ class ServiceEndpoint(object):
         can have a return value (labeled success) and possibly an exception
         (labeled by the exception name)
     """
+
     name = attr.ib()
     args = attr.ib()
     results = attr.ib()
@@ -48,9 +51,11 @@ class ThriftSpec(object):
         True if the spec is required in a request/response
         False otherwise
     """
+
     name = attr.ib()
     type_info = attr.ib()
     required = attr.ib()
+
 
 @attr.s(frozen=True)
 class StructType(object):
@@ -61,9 +66,11 @@ class StructType(object):
     fields: list[ThriftSpec]
         Each property of the struct is its own spec
     """
+
     ttype = attr.ib()
     struct_name = attr.ib()
     fields = attr.ib()
+
 
 @attr.s(frozen=True)
 class CollectionType(object):
@@ -72,8 +79,10 @@ class CollectionType(object):
     value_type: ThriftSpec
         Specification for the type the collection contains
     """
+
     ttype = attr.ib()
     value_type = attr.ib()
+
 
 @attr.s(frozen=True)
 class MapType(object):
@@ -84,13 +93,17 @@ class MapType(object):
     value_type: ThriftSpec
         Specification for the type of the value of the map
     """
+
     ttype = attr.ib()
     key_type = attr.ib()
-    value_type =attr.ib()
+    value_type = attr.ib()
+
 
 """
 Spec for one of thrifts 'base types'
 """
+
+
 @attr.s(frozen=True)
 class BaseType(object):
     ttype = attr.ib()

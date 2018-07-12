@@ -15,22 +15,12 @@ def test_basic_thrift_types():
     expected = ServiceEndpoint(
         name="returnInt",
         args=[
+            ThriftSpec(name="intParameter", type_info=BaseType("I32"), required=False),
             ThriftSpec(
-                name="intParameter",
-                type_info=BaseType("I32"),
-                required=False,
-            ),
-            ThriftSpec(
-                name="stringParameter",
-                type_info=BaseType("STRING"),
-                required=False,
+                name="stringParameter", type_info=BaseType("STRING"), required=False
             ),
         ],
-        results=[
-            ThriftSpec(
-                name="success", type_info=BaseType("I32"), required=False
-            )
-        ],
+        results=[ThriftSpec(name="success", type_info=BaseType("I32"), required=False)],
     )
     assert expected == thrift_manager.parse_thrift_endpoint(
         "simpleType.thrift",
