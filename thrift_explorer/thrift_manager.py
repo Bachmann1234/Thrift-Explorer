@@ -18,7 +18,7 @@ def _parse_type(ttype_code, type_info):
     if type_info == None:
         return BaseType(ttype)
     elif ttype in set(["SET", "LIST"]):
-        return CollectionType(ttype=ttype, valueType=_parse_type(type_info, None))
+        return CollectionType(ttype=ttype, value_type=_parse_type(type_info, None))
     elif ttype == "MAP":
         pass
     elif ttype == "STRUCT":

@@ -76,6 +76,7 @@ class StructType(object):
 class CollectionType(object):
     """
     Spec for a list or a set type
+    ttype: the type, set or list
     value_type: ThriftSpec
         Specification for the type the collection contains
     """
@@ -88,6 +89,8 @@ class CollectionType(object):
 class MapType(object):
     """
     Spec for a map type
+    ttype:
+        the type. map
     key_type: ThriftSpec
         Specification for the type of the key of the map
     value_type: ThriftSpec
@@ -99,11 +102,12 @@ class MapType(object):
     value_type = attr.ib()
 
 
-"""
-Spec for one of thrifts 'base types'
-"""
-
-
 @attr.s(frozen=True)
 class BaseType(object):
+    """
+    Spec for one of thrifts 'base types'
+    ttype:
+        String representing the underlying thrift type
+    """
+
     ttype = attr.ib()

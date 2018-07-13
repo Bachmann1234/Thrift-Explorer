@@ -3,6 +3,8 @@ from thrift_explorer import thrift_manager
 from thrift_explorer.thrift_models import (
     BaseType,
     ServiceEndpoint,
+    CollectionType,
+    MapType,
     ThriftSpec,
     ThriftService,
 )
@@ -31,7 +33,28 @@ def test_basic_thrift_types():
 
 def test_set_list_types():
     collections_thrift = load_thrift_from_testdir("collections.thrift")
-    expected = None
+    expected = ServiceEndpoint(
+        name="setsAndLists",
+        args=[
+            ThriftSpec(
+                name="listOfDoubles",
+                type_info=CollectionType(ttype="LIST", value_type=BaseType("DOUBLE")),
+                required=False,
+            ),
+            ThriftSpec(
+                name="binarySet",
+                type_info=CollectionType(ttype="SET", value_type=BaseType("STRING")),
+                required=False,
+            ),
+        ],
+        results=[
+            ThriftSpec(
+                name="success",
+                type_info=CollectionType(ttype="SET", value_type=BaseType("BYTE")),
+                required=False,
+            )
+        ],
+    )
     result = thrift_manager.parse_thrift_endpoint(
         "setList.thrift",
         collections_thrift.__thrift_meta__["services"][0],
