@@ -10,21 +10,47 @@ from thrift_explorer.thrift_models import (
     ThriftService,
     ThriftSpec,
     ServiceEndpoint,
+    MapType,
+    StructType,
+    EnumType,
 )
 
+_COLLECTION_TYPES = set(["SET", "LIST"])
 
-def _parse_type(ttype_code, type_info):
+
+def _parse_type(type_info):
+    try:
+        ttype_code, nested_type_info = type_info
+    except TypeError:
+        ttype_code = type_info
+        nested_type_info = None
+
     ttype = TType._VALUES_TO_NAMES[ttype_code]
-    if type_info == None:
+    if nested_type_info == None:
         return BaseType(ttype)
-    elif ttype in set(["SET", "LIST"]):
-        return CollectionType(ttype=ttype, value_type=_parse_type(type_info, None))
+    elif ttype in _COLLECTION_TYPES:
+        return CollectionType(ttype=ttype, value_type=_parse_type(nested_type_info))
     elif ttype == "MAP":
-        pass
+        key, value = nested_type_info
+        return MapType(
+            ttype=ttype, key_type=_parse_type(key), value_type=_parse_type(value)
+        )
     elif ttype == "STRUCT":
-        pass
+        return StructType(
+            ttype=ttype,
+            name=nested_type_info.__name__,
+            fields=[
+                _parse_arg(result) for result in nested_type_info.thrift_spec.values()
+            ],
+        )
     else:
-        raise ValueError("I dont know how to parse {}".format(ttype))
+        # Its a basic type but has defined nested type info. its probably an enum
+        return EnumType(
+            ttype=ttype,
+            name=nested_type_info.__name__,
+            names_to_values=nested_type_info._NAMES_TO_VALUES,
+            values_to_names=nested_type_info._VALUES_TO_NAMES,
+        )
 
 
 def _parse_arg(thrift_arg):  # Consider renaming?
@@ -34,7 +60,7 @@ def _parse_arg(thrift_arg):  # Consider renaming?
     except ValueError:
         ttype_code, name, type_info, required = thrift_arg
     return ThriftSpec(
-        name=name, type_info=_parse_type(ttype_code, type_info), required=required
+        name=name, type_info=_parse_type((ttype_code, type_info)), required=required
     )
 
 

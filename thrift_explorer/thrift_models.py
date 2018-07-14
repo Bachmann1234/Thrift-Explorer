@@ -61,6 +61,8 @@ class ThriftSpec(object):
 class StructType(object):
     """
     Spec for a particular Struct
+    ttype: str
+        Ttype of the object (always STRUCT)
     name: str
         Name of the struct
     fields: list[ThriftSpec]
@@ -68,7 +70,7 @@ class StructType(object):
     """
 
     ttype = attr.ib()
-    struct_name = attr.ib()
+    name = attr.ib()
     fields = attr.ib()
 
 
@@ -76,7 +78,7 @@ class StructType(object):
 class CollectionType(object):
     """
     Spec for a list or a set type
-    ttype: the type, set or list
+    ttype: the type, (always SET or LIST)
     value_type: ThriftSpec
         Specification for the type the collection contains
     """
@@ -90,7 +92,7 @@ class MapType(object):
     """
     Spec for a map type
     ttype:
-        the type. map
+        the type (always MAP)
     key_type: ThriftSpec
         Specification for the type of the key of the map
     value_type: ThriftSpec
@@ -100,6 +102,32 @@ class MapType(object):
     ttype = attr.ib()
     key_type = attr.ib()
     value_type = attr.ib()
+
+
+@attr.s(frozen=True)
+class EnumType(object):
+    """
+    Enums in thrift are a type that holds
+    an i32 value that is expected to be one
+    of a set of pre_defined values. These 
+    values each have name associated with them
+
+    ttype:
+        the type (always i32)
+    name:
+        the name of this enum
+    names_to_values:
+        dict mapping the acceptable names (strings) of this enum
+        to their corresponding i32 value
+    values_to_names:
+        dict mapping the acceptable values (i32s) of this enum
+        to their corresponding string value
+    """
+
+    ttype = attr.ib()
+    name = attr.ib()
+    names_to_values = attr.ib()
+    values_to_names = attr.ib()
 
 
 @attr.s(frozen=True)

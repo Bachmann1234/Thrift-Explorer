@@ -8,15 +8,15 @@ cython = "*"
 thriftpy = "*"
 flask = "*"
 attrs = "*"
-astroid = "*"
-pylint = "*"
 
 [dev-packages]
 black = "*"
 coverage = "*"
-pylint = "*"
 pytest = "*"
 pre-commit = "*"
+astroid = "*"
+pylint = "*"
+pytest-cov = "*"
 
 [pipenv]
 allow_prereleases = true
