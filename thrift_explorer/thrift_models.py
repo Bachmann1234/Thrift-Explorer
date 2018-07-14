@@ -61,47 +61,47 @@ class ThriftSpec(object):
 class StructType(object):
     """
     Spec for a particular Struct
-    ttype: str
-        Ttype of the object (always STRUCT)
     name: str
         Name of the struct
     fields: list[ThriftSpec]
         Each property of the struct is its own spec
+    ttype: str
+        Ttype of the object (always STRUCT)
     """
 
-    ttype = attr.ib()
     name = attr.ib()
     fields = attr.ib()
+    ttype = attr.ib(default="STRUCT")
 
 
 @attr.s(frozen=True)
 class CollectionType(object):
     """
     Spec for a list or a set type
-    ttype: the type, (always SET or LIST)
-    value_type: ThriftSpec
+    value_type: BaseType|MapType|CollectionType|StructType|EnumType 
         Specification for the type the collection contains
+    ttype: the type, (always SET or LIST)
     """
 
-    ttype = attr.ib()
     value_type = attr.ib()
+    ttype = attr.ib()
 
 
 @attr.s(frozen=True)
 class MapType(object):
     """
     Spec for a map type
+    key_type: BaseType|MapType|CollectionType|StructType|EnumType 
+        Specification for the type of the key of the map
+    value_type: BaseType|MapType|CollectionType|StructType|EnumType 
+        Specification for the type of the value of the map
     ttype:
         the type (always MAP)
-    key_type: ThriftSpec
-        Specification for the type of the key of the map
-    value_type: ThriftSpec
-        Specification for the type of the value of the map
     """
 
-    ttype = attr.ib()
     key_type = attr.ib()
     value_type = attr.ib()
+    ttype = attr.ib(default="MAP")
 
 
 @attr.s(frozen=True)
@@ -112,8 +112,6 @@ class EnumType(object):
     of a set of pre_defined values. These 
     values each have name associated with them
 
-    ttype:
-        the type (always i32)
     name:
         the name of this enum
     names_to_values:
@@ -122,12 +120,14 @@ class EnumType(object):
     values_to_names:
         dict mapping the acceptable values (i32s) of this enum
         to their corresponding string value
+    ttype:
+        the type (always i32)
     """
 
-    ttype = attr.ib()
     name = attr.ib()
     names_to_values = attr.ib()
     values_to_names = attr.ib()
+    ttype = attr.ib(default="I32")
 
 
 @attr.s(frozen=True)

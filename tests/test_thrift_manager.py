@@ -225,18 +225,178 @@ def test_void_method():
     )
 
 
+def test_exception():
+    exceptional_thrift = load_thrift_from_testdir("exceptional.thrift")
+    expected = ServiceEndpoint(
+        name="ping",
+        args=[],
+        results=[
+            ThriftSpec(
+                name="omg",
+                type_info=StructType(
+                    ttype="STRUCT",
+                    name="OMGException",
+                    fields=[
+                        ThriftSpec(
+                            name="description",
+                            type_info=BaseType("STRING"),
+                            required=True,
+                        )
+                    ],
+                ),
+                required=False,
+            )
+        ],
+    )
+    assert expected == thrift_manager.parse_thrift_endpoint(
+        "exceptional.thrift", exceptional_thrift.__thrift_meta__["services"][0], "ping"
+    )
+
+
 def test_list_modules(example_thrift_directory):
     manager = ThriftManager(example_thrift_directory)
+    crime_names_to_values = {"MURDER": 0, "ROBBERY": 1, "OTHER": 2}
+    crime_type_enum = EnumType(
+        ttype="I32",
+        name="CrimeType",
+        names_to_values=crime_names_to_values,
+        values_to_names={value: key for key, value in crime_names_to_values.items()},
+    )
+    location_struct = StructType(
+        ttype="STRUCT",
+        name="Location",
+        fields=[
+            ThriftSpec(
+                name="latitude", type_info=BaseType(ttype="DOUBLE"), required=True
+            ),
+            ThriftSpec(
+                name="longitude", type_info=BaseType(ttype="DOUBLE"), required=True
+            ),
+        ],
+    )
+    villain_struct = StructType(
+        ttype="STRUCT",
+        name="Villain",
+        fields=[
+            ThriftSpec(name="villainId", type_info=BaseType("I32"), required=True),
+            ThriftSpec(name="name", type_info=BaseType("STRING"), required=True),
+            ThriftSpec(name="description", type_info=BaseType("STRING"), required=True),
+            ThriftSpec(
+                name="hideoutLocation", type_info=location_struct, required=False
+            ),
+        ],
+    )
+    case_struct = StructType(
+        ttype="STRUCT",
+        name="Case",
+        fields=[
+            ThriftSpec(name="caseName", type_info=BaseType("STRING"), required=True),
+            ThriftSpec(name="CrimeType", type_info=crime_type_enum, required=True),
+            ThriftSpec(name="mainSuspect", type_info=villain_struct, required=False),
+            ThriftSpec(
+                name="notes",
+                type_info=CollectionType(ttype="LIST", value_type=BaseType("STRING")),
+                required=False,
+            ),
+        ],
+    )
+    villain_result = ThriftSpec(
+        name="success", type_info=villain_struct, required=False
+    )
+    ping_endpoint = ServiceEndpoint(name="ping", args=[], results=[])
+    get_villain_endpoint = ServiceEndpoint(
+        "getVillain",
+        args=[ThriftSpec(name="villainId", type_info=BaseType("I32"), required=False)],
+        results=[villain_result],
+    )
+    add_villain_endpoint = ServiceEndpoint(
+        "addVillain",
+        args=[
+            ThriftSpec(name="name", type_info=BaseType("STRING"), required=False),
+            ThriftSpec(
+                name="description", type_info=BaseType("STRING"), required=False
+            ),
+            ThriftSpec(
+                name="hideoutLocation", type_info=location_struct, required=False
+            ),
+        ],
+        results=[villain_result],
+    )
+    save_case_endpoint = ServiceEndpoint(
+        "saveCase",
+        args=[ThriftSpec(name="caseToSave", type_info=case_struct, required=False)],
+        results=[
+            ThriftSpec(name="success", type_info=BaseType("BOOL"), required=False)
+        ],
+    )
+
+    task_struct = StructType(
+        name="Task",
+        fields=[
+            ThriftSpec(name="taskId", type_info=BaseType("STRING"), required=False),
+            ThriftSpec(
+                name="description", type_info=BaseType("STRING"), required=False
+            ),
+            ThriftSpec(name="dueDate", type_info=BaseType("STRING"), required=False),
+        ],
+        ttype="STRUCT",
+    )
+    notfound_exception = StructType(name="NotFound", fields=[], ttype="STRUCT")
+    not_found_result = ThriftSpec(
+        name="notfound", type_info=notfound_exception, required=False
+    )
+    task_result = ThriftSpec(name="success", type_info=task_struct, required=False)
+    list_tasks_endpoint = ServiceEndpoint(
+        name="listTasks",
+        args=[],
+        results=[
+            ThriftSpec(
+                name="success",
+                type_info=CollectionType(value_type=task_struct, ttype="LIST"),
+                required=False,
+            )
+        ],
+    )
+    get_task_endpoint = ServiceEndpoint(
+        name="getTask",
+        args=[ThriftSpec(name="taskId", type_info=BaseType("STRING"), required=False)],
+        results=[not_found_result, task_result],
+    )
+    create_task_endpoint = ServiceEndpoint(
+        name="createTask",
+        args=[
+            ThriftSpec(
+                name="description", type_info=BaseType("STRING"), required=False
+            ),
+            ThriftSpec(name="dueDate", type_info=BaseType("STRING"), required=False),
+        ],
+        results=[task_result],
+    )
+    complete_task_endpoint = ServiceEndpoint(
+        name="completeTask",
+        args=[ThriftSpec(name="taskId", type_info=BaseType("STRING"), required=False)],
+        results=[not_found_result],
+    )
     expected = [
         ThriftService(
             "Batman.thrift",
             "BatPuter",
-            ["ping", "getVillain", "addVillain", "saveCase"],
+            [
+                ping_endpoint,
+                get_villain_endpoint,
+                add_villain_endpoint,
+                save_case_endpoint,
+            ],
         ),
         ThriftService(
             "todo.thrift",
             "TodoService",
-            ["listTasks", "getTask", "createTask", "completeTask"],
+            [
+                list_tasks_endpoint,
+                get_task_endpoint,
+                create_task_endpoint,
+                complete_task_endpoint,
+            ],
         ),
     ]
     actual = manager.services
