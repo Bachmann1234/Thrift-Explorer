@@ -6,7 +6,12 @@ env:
     - PIPENV_VENV_IN_PROJECT=1
     - PIPENV_IGNORE_VIRTUALENVS=1
 install:
-  - pip install pipenv
+  - pip install pipenv coveralls 
   - pipenv install --dev --three
 script:
   - pipenv run python -m pytest --cov=thrift_explorer/ tests
+after_success:
+  - coveralls
+notifications:
+  on_success: change
+  on_failure: always
