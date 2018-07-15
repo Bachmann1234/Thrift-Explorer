@@ -119,11 +119,11 @@ def _parse_services(thrifts):
 
 def _find_protocol_factory(protocol):
     if protocol == Protocol.BINARY:
-        return TBinaryProtocolFactory
+        return TBinaryProtocolFactory()
     elif protocol == Protocol.JSON:
-        return TJSONProtocolFactory
+        return TJSONProtocolFactory()
     elif protocol == Protocol.COMPACT:
-        return TCompactProtocolFactory
+        return TCompactProtocolFactory()
     else:
         raise ValueError("Invalid protocol {}".format(protocol))
 
@@ -148,7 +148,7 @@ class ThriftManager(object):
             service=thrift_request.service,
             host=thrift_request.host,
             port=thrift_request.port,
-            proto_factory=None,
-            trans_factory=None,
+            proto_factory=_find_protocol_factory(thrift_request.protocol),
+            trans_factory=_find_transport_factory(thrift_request.transport),
         ) as client:
             return getattr(client, thrift_request.endpoint)(None)

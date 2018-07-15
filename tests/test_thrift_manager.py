@@ -414,7 +414,10 @@ def test_list_modules(example_thrift_directory):
     ],
 )
 def test_find_protocol_factory(input_protocol, expected):
-    assert expected == thrift_manager._find_protocol_factory(input_protocol).__name__
+    assert (
+        expected
+        == thrift_manager._find_protocol_factory(input_protocol).__class__.__name__
+    )
 
 
 @pytest.mark.parametrize(
