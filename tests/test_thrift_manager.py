@@ -432,3 +432,13 @@ def test_find_transport_factory(input_transport, expected):
         expected
         == thrift_manager._find_transport_factory(input_transport).__class__.__name__
     )
+
+
+def test_invalid_transport_raises_valueerror():
+    with pytest.raises(ValueError):
+        thrift_manager._find_transport_factory("Bat")
+
+
+def test_invalid_protocol_raises_valueerror():
+    with pytest.raises(ValueError):
+        thrift_manager._find_protocol_factory("Bat")
