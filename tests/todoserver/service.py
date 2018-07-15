@@ -7,6 +7,7 @@ todo_thrift = thriftpy.load(
     os.path.join(
         os.path.dirname(os.path.realpath(__file__)),
         "..",
+        "..",
         "example-thrifts",
         "todo.thrift",
     ),
@@ -62,9 +63,9 @@ class Dispatcher(object):
             raise todo_thrift.Exceptions.NotFound()
 
 
-def main():
-    make_server(todo_thrift.TodoService, Dispatcher(), "127.0.0.1", 6000).serve()
+def run_server(port):
+    make_server(todo_thrift.TodoService, Dispatcher(), "127.0.0.1", port).serve()
 
 
 if __name__ == "__main__":
-    main()
+    run_server(6000)

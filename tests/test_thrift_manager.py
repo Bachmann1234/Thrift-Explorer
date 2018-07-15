@@ -394,6 +394,7 @@ def test_list_modules(example_thrift_directory):
             "todo.thrift",
             "TodoService",
             [
+                ping_endpoint,
                 list_tasks_endpoint,
                 get_task_endpoint,
                 create_task_endpoint,

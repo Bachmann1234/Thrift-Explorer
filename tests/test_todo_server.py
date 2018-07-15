@@ -1,6 +1,14 @@
+"""
+Not directly related to the thrift explorer.
+However, I like to have some confidence in the dummy
+server logic since I use it for internal testing
+"""
 import os
+import pytest
 import thriftpy
 from thriftpy.rpc import make_client
+
+pytestmark = pytest.mark.uses_server
 
 todo_thrift = thriftpy.load(
     os.path.join(
@@ -8,8 +16,7 @@ todo_thrift = thriftpy.load(
         "..",
         "example-thrifts",
         "todo.thrift",
-    ),
-    module_name="todo_thrift",
+    )
 )
 
 
@@ -18,7 +25,7 @@ def clear_all_tasks(client):
         client.completeTask(task.taskId)
 
 
-def main():
+def test_todo_service(todo_server):
     client = make_client(todo_thrift.TodoService, "127.0.0.1", 6000)
     print("Clear tasks")
     clear_all_tasks(client)
@@ -39,7 +46,3 @@ def main():
     print(tasks)
     assert [task, second_task] == tasks
     clear_all_tasks(client)
-
-
-if __name__ == "__main__":
-    main()

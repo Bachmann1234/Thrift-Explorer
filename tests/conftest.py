@@ -1,5 +1,8 @@
 import os
+from time import sleep
+from multiprocessing import Process
 import pytest
+from todoserver.service import run_server
 from thrift_explorer.thrift_models import ServiceEndpoint
 
 
@@ -8,6 +11,15 @@ def example_thrift_directory():
     return os.path.join(
         os.path.dirname(os.path.realpath(__file__)), "..", "example-thrifts"
     )
+
+
+@pytest.fixture(scope="module")
+def todo_server():
+    server = Process(target=run_server, args=(6000,))
+    server.start()
+    sleep(.2)
+    yield
+    Process.terminate(server)
 
 
 def pytest_assertrepr_compare(op, left, right):
