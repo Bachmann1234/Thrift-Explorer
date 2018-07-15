@@ -4,13 +4,19 @@ from multiprocessing import Process
 import pytest
 from todoserver.service import run_server
 from thrift_explorer.thrift_models import ServiceEndpoint
+from thrift_explorer.thrift_manager import ThriftManager
 
 
-@pytest.fixture()
+@pytest.fixture(scope="session")
 def example_thrift_directory():
     return os.path.join(
         os.path.dirname(os.path.realpath(__file__)), "..", "example-thrifts"
     )
+
+
+@pytest.fixture(scope="session")
+def example_thrift_manager(example_thrift_directory):
+    return ThriftManager(example_thrift_directory)
 
 
 @pytest.fixture(scope="module")
