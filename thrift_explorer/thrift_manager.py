@@ -143,6 +143,9 @@ class ThriftManager(object):
         self._thrifts = _load_thrifts(self.thrift_directory)
         self.services = _parse_services(self._thrifts)
 
+    def translate_request_body(self, request):
+        return {}
+
     def make_request(self, thrift_request):
         with thriftpy.rpc.client_context(
             service=thrift_request.service,
@@ -151,4 +154,6 @@ class ThriftManager(object):
             proto_factory=_find_protocol_factory(thrift_request.protocol),
             trans_factory=_find_transport_factory(thrift_request.transport),
         ) as client:
-            return getattr(client, thrift_request.endpoint)(None)
+            return getattr(client, thrift_request.endpoint)(
+                self.translate_request_body(thrift_request)
+            )
