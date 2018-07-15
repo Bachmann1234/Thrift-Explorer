@@ -27,6 +27,7 @@ def clear_all_tasks(client):
 
 def test_todo_service(todo_server):
     client = make_client(todo_thrift.TodoService, "127.0.0.1", 6000)
+    client.ping()
     print("Clear tasks")
     clear_all_tasks(client)
     assert not client.listTasks()

@@ -1,6 +1,6 @@
 import glob
 import os
-from collections import namedtuple
+from collections import namedtuple, defaultdict
 import thriftpy
 from thriftpy import thrift
 from thriftpy.thrift import TType
@@ -102,17 +102,15 @@ def _load_thrifts(thrift_directory):
     return thrifts
 
 
-def _parse_services(thrifts):
-    result = []
+def _parse_service_specs(thrifts):
+    result = defaultdict(dict)
     for thrift_file, module in thrifts.items():
         for thrift_service in module.__thrift_meta__["services"]:
-            result.append(
-                parse_thrift_service(
-                    thrift_file,
-                    thrift_service,
-                    # I'm a bit confused why this is called services and not 'methods' or 'endpoints'
-                    thrift_service.thrift_services,
-                )
+            result[thrift_file][thrift_service.__name__] = parse_thrift_service(
+                thrift_file,
+                thrift_service,
+                # I'm a bit confused why this is called services and not 'methods' or 'endpoints'
+                thrift_service.thrift_services,
             )
     return result
 
@@ -141,19 +139,21 @@ class ThriftManager(object):
     def __init__(self, thrift_directory):
         self.thrift_directory = thrift_directory
         self._thrifts = _load_thrifts(self.thrift_directory)
-        self.services = _parse_services(self._thrifts)
+        self.service_specs = _parse_service_specs(self._thrifts)
 
     def translate_request_body(self, request):
         return {}
 
     def make_request(self, thrift_request):
         with thriftpy.rpc.client_context(
-            service=thrift_request.service,
+            service=getattr(
+                self._thrifts[thrift_request.thrift_file], thrift_request.service_name
+            ),
             host=thrift_request.host,
             port=thrift_request.port,
             proto_factory=_find_protocol_factory(thrift_request.protocol),
             trans_factory=_find_transport_factory(thrift_request.transport),
         ) as client:
-            return getattr(client, thrift_request.endpoint)(
+            return getattr(client, thrift_request.endpoint_name)(
                 self.translate_request_body(thrift_request)
             )
