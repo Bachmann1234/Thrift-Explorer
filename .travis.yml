@@ -9,5 +9,4 @@ install:
   - pip install pipenv
   - pipenv install --dev --three
 script:
-  - pipenv shell
-  - python -m pytest --cov=thrift_explorer/ tests
+  - pipenv run python -m pytest --cov=thrift_explorer/ tests
