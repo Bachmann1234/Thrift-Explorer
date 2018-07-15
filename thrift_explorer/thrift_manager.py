@@ -14,6 +14,12 @@ from thrift_explorer.thrift_models import (
     StructType,
     EnumType,
 )
+from thrift_explorer.communication_models import Protocol, Transport
+from thriftpy.protocol import (
+    TJSONProtocolFactory,
+    TBinaryProtocolFactory,
+    TCompactProtocolFactory,
+)
 
 _COLLECTION_TYPES = set(["SET", "LIST"])
 
@@ -111,8 +117,38 @@ def _parse_services(thrifts):
     return result
 
 
+def _find_protocol_factory(protocol):
+    if protocol == Protocol.BINARY:
+        return TBinaryProtocolFactory
+    elif protocol == Protocol.JSON:
+        return TJSONProtocolFactory
+    elif protocol == Protocol.COMPACT:
+        return TCompactProtocolFactory
+    else:
+        raise ValueError("Invalid protocol {}".format(protocol))
+
+
+def _find_transport_factory(transport):
+    if transport == Transport.BUFFERED:
+        return thriftpy.transport.TBufferedTransportFactory()
+    elif transport == Transport.FRAMED:
+        return thriftpy.transport.TFramedTransportFactory()
+    else:
+        raise ValueError("Invalid transport {}".format(transport))
+
+
 class ThriftManager(object):
     def __init__(self, thrift_directory):
         self.thrift_directory = thrift_directory
         self._thrifts = _load_thrifts(self.thrift_directory)
         self.services = _parse_services(self._thrifts)
+
+    def make_request(self, thrift_request):
+        with thriftpy.rpc.client_context(
+            service=thrift_request.service,
+            host=thrift_request.host,
+            port=thrift_request.port,
+            proto_factory=None,
+            trans_factory=None,
+        ) as client:
+            return getattr(client, thrift_request.endpoint)(None)

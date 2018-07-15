@@ -1,4 +1,5 @@
 import os
+import pytest
 from thrift_explorer import thrift_manager
 from thrift_explorer.thrift_models import (
     BaseType,
@@ -10,6 +11,7 @@ from thrift_explorer.thrift_models import (
     StructType,
     EnumType,
 )
+from thrift_explorer.communication_models import Protocol, Transport
 from thrift_explorer.thrift_manager import ThriftManager
 from testing_utils import load_thrift_from_testdir
 
@@ -401,3 +403,29 @@ def test_list_modules(example_thrift_directory):
     ]
     actual = manager.services
     assert expected == actual
+
+
+@pytest.mark.parametrize(
+    "input_protocol, expected",
+    [
+        (Protocol.BINARY, "TCyBinaryProtocolFactory"),
+        (Protocol.JSON, "TJSONProtocolFactory"),
+        (Protocol.COMPACT, "TCompactProtocolFactory"),
+    ],
+)
+def test_find_protocol_factory(input_protocol, expected):
+    assert expected == thrift_manager._find_protocol_factory(input_protocol).__name__
+
+
+@pytest.mark.parametrize(
+    "input_transport, expected",
+    [
+        (Transport.BUFFERED, "TCyBufferedTransportFactory"),
+        (Transport.FRAMED, "TCyFramedTransportFactory"),
+    ],
+)
+def test_find_transport_factory(input_transport, expected):
+    assert (
+        expected
+        == thrift_manager._find_transport_factory(input_transport).__class__.__name__
+    )
