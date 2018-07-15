@@ -1,5 +1,7 @@
 # Thrift Explorer
-This repo is not 100% sure what it wants to be. But let me walk you though my intentions
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
+
+This repo is not 100% sure what it wants to be. It is also not something that is ready to actually be used (does not even do anything yet). But let me walk you though my intentions
 
 [Apache Thrift](https://thrift.apache.org/) is a language agnostic framework that enables typed communication between services. 
 
