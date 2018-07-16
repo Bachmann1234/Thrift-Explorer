@@ -1,8 +1,3 @@
-from enum import Enum
-
-import attr
-
-
 """
     Here are some things I can theoredically support
     but am punting on until I am further along
@@ -14,6 +9,9 @@ import attr
     finagle protocol
     mutliplex protocol
 """
+from enum import Enum
+
+import attr
 
 
 class Protocol(Enum):

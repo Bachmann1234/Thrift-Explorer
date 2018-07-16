@@ -91,9 +91,9 @@ class CollectionType(object):
 class MapType(object):
     """
     Spec for a map type
-    key_type: BaseType|MapType|CollectionType|StructType|EnumType 
+    key_type: BaseType|MapType|CollectionType|StructType|EnumType
         Specification for the type of the key of the map
-    value_type: BaseType|MapType|CollectionType|StructType|EnumType 
+    value_type: BaseType|MapType|CollectionType|StructType|EnumType
         Specification for the type of the value of the map
     ttype:
         the type (always MAP)
@@ -109,7 +109,7 @@ class EnumType(object):
     """
     Enums in thrift are a type that holds
     an i32 value that is expected to be one
-    of a set of pre_defined values. These 
+    of a set of pre_defined values. These
     values each have name associated with them
 
     name:
