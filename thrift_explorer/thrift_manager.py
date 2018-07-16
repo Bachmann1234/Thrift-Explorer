@@ -1,9 +1,13 @@
 import glob
 import os
-from collections import namedtuple, defaultdict
+from collections import defaultdict
 import thriftpy
-from thriftpy import thrift
 from thriftpy.thrift import TType
+from thriftpy.protocol import (
+    TJSONProtocolFactory,
+    TBinaryProtocolFactory,
+    TCompactProtocolFactory,
+)
 from thrift_explorer.thrift_models import (
     BaseType,
     CollectionType,
@@ -15,11 +19,7 @@ from thrift_explorer.thrift_models import (
     EnumType,
 )
 from thrift_explorer.communication_models import Protocol, Transport
-from thriftpy.protocol import (
-    TJSONProtocolFactory,
-    TBinaryProtocolFactory,
-    TCompactProtocolFactory,
-)
+
 
 _COLLECTION_TYPES = set(["SET", "LIST"])
 
@@ -32,7 +32,7 @@ def _parse_type(type_info):
         nested_type_info = None
 
     ttype = TType._VALUES_TO_NAMES[ttype_code]
-    if nested_type_info == None:
+    if nested_type_info is None:
         return BaseType(ttype)
     elif ttype in _COLLECTION_TYPES:
         return CollectionType(ttype=ttype, value_type=_parse_type(nested_type_info))
@@ -49,14 +49,13 @@ def _parse_type(type_info):
                 _parse_arg(result) for result in nested_type_info.thrift_spec.values()
             ],
         )
-    else:
-        # Its a basic type but has defined nested type info. its probably an enum
-        return EnumType(
-            ttype=ttype,
-            name=nested_type_info.__name__,
-            names_to_values=nested_type_info._NAMES_TO_VALUES,
-            values_to_names=nested_type_info._VALUES_TO_NAMES,
-        )
+    # Its a basic type but has defined nested type info. its probably an enum
+    return EnumType(
+        ttype=ttype,
+        name=nested_type_info.__name__,
+        names_to_values=nested_type_info._NAMES_TO_VALUES,
+        values_to_names=nested_type_info._VALUES_TO_NAMES,
+    )
 
 
 def _parse_arg(thrift_arg):  # Consider renaming?
@@ -70,7 +69,7 @@ def _parse_arg(thrift_arg):  # Consider renaming?
     )
 
 
-def parse_thrift_endpoint(thrift_file, service, endpoint):
+def parse_thrift_endpoint(service, endpoint):
     endpoint_args = getattr(service, "{}_args".format(endpoint))
     endpoint_results = getattr(service, "{}_result".format(endpoint))
     return ServiceEndpoint(
@@ -86,10 +85,7 @@ def parse_thrift_service(thrift_file, service, endpoints):
     return ThriftService(
         thrift_file,
         service.__name__,
-        [
-            parse_thrift_endpoint(thrift_file, service, endpoint)
-            for endpoint in endpoints
-        ],
+        [parse_thrift_endpoint(service, endpoint) for endpoint in endpoints],
     )
 
 
@@ -122,8 +118,7 @@ def _find_protocol_factory(protocol):
         return TJSONProtocolFactory()
     elif protocol == Protocol.COMPACT:
         return TCompactProtocolFactory()
-    else:
-        raise ValueError("Invalid protocol {}".format(protocol))
+    raise ValueError("Invalid protocol {}".format(protocol))
 
 
 def _find_transport_factory(transport):
@@ -131,8 +126,7 @@ def _find_transport_factory(transport):
         return thriftpy.transport.TBufferedTransportFactory()
     elif transport == Transport.FRAMED:
         return thriftpy.transport.TFramedTransportFactory()
-    else:
-        raise ValueError("Invalid transport {}".format(transport))
+    raise ValueError("Invalid transport {}".format(transport))
 
 
 class ThriftManager(object):
