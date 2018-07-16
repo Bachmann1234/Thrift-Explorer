@@ -1,25 +1,26 @@
 import glob
 import os
 from collections import defaultdict
+
 import thriftpy
-from thriftpy.thrift import TType
 from thriftpy.protocol import (
-    TJSONProtocolFactory,
     TBinaryProtocolFactory,
     TCompactProtocolFactory,
+    TJSONProtocolFactory,
 )
+from thriftpy.thrift import TType
+
+from thrift_explorer.communication_models import Protocol, Transport
 from thrift_explorer.thrift_models import (
     BaseType,
     CollectionType,
+    EnumType,
+    MapType,
+    ServiceEndpoint,
+    StructType,
     ThriftService,
     ThriftSpec,
-    ServiceEndpoint,
-    MapType,
-    StructType,
-    EnumType,
 )
-from thrift_explorer.communication_models import Protocol, Transport
-
 
 _COLLECTION_TYPES = set(["SET", "LIST"])
 

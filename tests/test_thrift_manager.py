@@ -1,19 +1,21 @@
 import os
+
 import pytest
+
+from testing_utils import load_thrift_from_testdir
 from thrift_explorer import thrift_manager
-from thrift_explorer.thrift_models import (
-    BaseType,
-    ServiceEndpoint,
-    CollectionType,
-    MapType,
-    ThriftSpec,
-    ThriftService,
-    StructType,
-    EnumType,
-)
 from thrift_explorer.communication_models import Protocol, Transport
 from thrift_explorer.thrift_manager import ThriftManager
-from testing_utils import load_thrift_from_testdir
+from thrift_explorer.thrift_models import (
+    BaseType,
+    CollectionType,
+    EnumType,
+    MapType,
+    ServiceEndpoint,
+    StructType,
+    ThriftService,
+    ThriftSpec,
+)
 
 
 def test_basic_thrift_types():

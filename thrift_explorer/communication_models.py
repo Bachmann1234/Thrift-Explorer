@@ -1,5 +1,7 @@
 from enum import Enum
+
 import attr
+
 
 """
     Here are some things I can theoredically support
