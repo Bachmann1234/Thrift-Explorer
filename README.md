@@ -18,6 +18,3 @@ I began writing this project because I wanted a quick and easy way to make thrif
 I wanted to see if I could build something I liked better.
 
 I plan to start with a CLI. I would consider this a sort of proof of concept. Ultimately I think working with thrifts this way is better suited to a gui tool. Even simple requests have a lot of arguments. 
-
-
-
