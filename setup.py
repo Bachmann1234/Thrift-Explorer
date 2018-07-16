@@ -13,7 +13,7 @@ NAME = "thriftexplorer"
 DESCRIPTION = "Potentially useful utility for working with thrift files"
 URL = "https://github.com/Bachmann1234/thriftExplorer"
 EMAIL = "bachmann.matt@gmail.com"
-AUTHOR = "Matt bachmann"
+AUTHOR = "Matt Bachmann"
 REQUIRES_PYTHON = ">=3.7.0"
 VERSION = .1
 
