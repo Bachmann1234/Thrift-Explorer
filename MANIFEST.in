@@ -1,0 +1,4 @@
+include README.md
+include LICENSE
+include thriftExplorer/example-thrifts/*
+include thriftExplorer/example-thrifts/*

@@ -16,6 +16,7 @@ pre-commit = "*"
 astroid = "*"
 pylint = "*"
 pytest-cov = "*"
+twine = "*"
 
 [pipenv]
 allow_prereleases = true
