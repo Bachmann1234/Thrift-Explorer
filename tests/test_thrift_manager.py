@@ -26,7 +26,7 @@ def test_basic_thrift_types():
         ],
         results=[ThriftSpec(name="success", type_info=BaseType("I32"), required=False)],
     )
-    assert expected == thrift_manager.parse_thrift_endpoint(
+    assert expected == thrift_manager._parse_thrift_endpoint(
         simple_type_thrift.__thrift_meta__["services"][0], "returnInt"
     )
 
@@ -55,7 +55,7 @@ def test_set_list_types():
             )
         ],
     )
-    result = thrift_manager.parse_thrift_endpoint(
+    result = thrift_manager._parse_thrift_endpoint(
         collections_thrift.__thrift_meta__["services"][0], "setsAndLists"
     )
     assert expected == result
@@ -84,7 +84,7 @@ def test_map_type():
             )
         ],
     )
-    result = thrift_manager.parse_thrift_endpoint(
+    result = thrift_manager._parse_thrift_endpoint(
         collections_thrift.__thrift_meta__["services"][0], "maps"
     )
     assert expected == result
@@ -126,7 +126,7 @@ def test_struct_type():
             )
         ],
     )
-    result = thrift_manager.parse_thrift_endpoint(
+    result = thrift_manager._parse_thrift_endpoint(
         struct_thrift.__thrift_meta__["services"][0], "getMyStruct"
     )
     assert expected == result
@@ -158,7 +158,7 @@ def test_enum():
             )
         ],
     )
-    assert expected == thrift_manager.parse_thrift_endpoint(
+    assert expected == thrift_manager._parse_thrift_endpoint(
         enum_thrift.__thrift_meta__["services"][0], "getHero"
     )
 
@@ -202,7 +202,7 @@ def test_super_nesting():
         ],
     )
 
-    assert expected == thrift_manager.parse_thrift_endpoint(
+    assert expected == thrift_manager._parse_thrift_endpoint(
         turducken_thrift.__thrift_meta__["services"][0], "getTheStruct"
     )
 
@@ -210,7 +210,7 @@ def test_super_nesting():
 def test_void_method():
     simple_type_thrift = load_thrift_from_testdir("simpleType.thrift")
     expected = ServiceEndpoint(name="voidMethod", args=[], results=[])
-    assert expected == thrift_manager.parse_thrift_endpoint(
+    assert expected == thrift_manager._parse_thrift_endpoint(
         simple_type_thrift.__thrift_meta__["services"][0], "voidMethod"
     )
 
@@ -238,7 +238,7 @@ def test_exception():
             )
         ],
     )
-    assert expected == thrift_manager.parse_thrift_endpoint(
+    assert expected == thrift_manager._parse_thrift_endpoint(
         exceptional_thrift.__thrift_meta__["services"][0], "ping"
     )
 

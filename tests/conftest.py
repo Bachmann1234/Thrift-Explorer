@@ -2,6 +2,8 @@ import os
 from time import sleep
 from multiprocessing import Process
 import pytest
+import thriftpy
+from thriftpy.rpc import make_client
 from todoserver.service import run_server
 from thrift_explorer.thrift_models import ServiceEndpoint
 from thrift_explorer.thrift_manager import ThriftManager
@@ -12,6 +14,25 @@ def example_thrift_directory():
     return os.path.join(
         os.path.dirname(os.path.realpath(__file__)), "..", "example-thrifts"
     )
+
+
+@pytest.fixture(scope="session")
+def todo_thrift():
+    return thriftpy.load(
+        os.path.join(
+            os.path.dirname(os.path.realpath(__file__)),
+            "..",
+            "example-thrifts",
+            "todo.thrift",
+        )
+    )
+
+
+@pytest.fixture()
+def todo_client(todo_thrift):
+    client = make_client(todo_thrift.TodoService, "127.0.0.1", 6000)
+    yield client
+    client.close()
 
 
 @pytest.fixture(scope="session")

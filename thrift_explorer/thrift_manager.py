@@ -70,7 +70,7 @@ def _parse_arg(thrift_arg):  # Consider renaming?
     )
 
 
-def parse_thrift_endpoint(service, endpoint):
+def _parse_thrift_endpoint(service, endpoint):
     endpoint_args = getattr(service, "{}_args".format(endpoint))
     endpoint_results = getattr(service, "{}_result".format(endpoint))
     return ServiceEndpoint(
@@ -82,11 +82,11 @@ def parse_thrift_endpoint(service, endpoint):
     )
 
 
-def parse_thrift_service(thrift_file, service, endpoints):
+def _parse_thrift_service(thrift_file, service, endpoints):
     return ThriftService(
         thrift_file,
         service.__name__,
-        [parse_thrift_endpoint(service, endpoint) for endpoint in endpoints],
+        {endpoint: _parse_thrift_endpoint(service, endpoint) for endpoint in endpoints},
     )
 
 
@@ -103,7 +103,7 @@ def _parse_service_specs(thrifts):
     result = defaultdict(dict)
     for thrift_file, module in thrifts.items():
         for thrift_service in module.__thrift_meta__["services"]:
-            result[thrift_file][thrift_service.__name__] = parse_thrift_service(
+            result[thrift_file][thrift_service.__name__] = _parse_thrift_service(
                 thrift_file,
                 thrift_service,
                 # I'm a bit confused why this is called services and not 'methods' or 'endpoints'
@@ -130,14 +130,43 @@ def _find_transport_factory(transport):
     raise ValueError("Invalid transport {}".format(transport))
 
 
+def _translate_arg(arg_spec, raw_arg):
+    """
+    translate the raw args into ones the client can handle.
+    Basically this means turning parts of a dictionary into
+    the correct objects for thrift. This is most relevant when 
+    structs are introduced.
+    """
+    if isinstance(arg_spec.type_info, BaseType):
+        return raw_arg
+    else:
+        raise ValueError("OMG")  # I will rethink this
+
+
+def _translate_request_body(endpoint, request_body):
+    """
+    Translate the request dictionary into whatever arguments
+    are required to make the call with the thrift client
+
+    endpoint: The endpoint spec as parsed by ThriftManager 
+
+    request_dict: dictionary containing the args that should match
+    the service. The values should have been validated before hitting 
+    this method
+    """
+    processed_args = {}
+    for arg_spec in endpoint.args:
+        processed_args[arg_spec.name] = _translate_arg(
+            arg_spec, request_body[arg_spec.name]
+        )
+    return processed_args
+
+
 class ThriftManager(object):
     def __init__(self, thrift_directory):
         self.thrift_directory = thrift_directory
         self._thrifts = _load_thrifts(self.thrift_directory)
         self.service_specs = _parse_service_specs(self._thrifts)
-
-    def translate_request_body(self, request):
-        return {}
 
     def make_request(self, thrift_request):
         with thriftpy.rpc.client_context(
@@ -149,6 +178,11 @@ class ThriftManager(object):
             proto_factory=_find_protocol_factory(thrift_request.protocol),
             trans_factory=_find_transport_factory(thrift_request.transport),
         ) as client:
+            thrift_spec = self.service_specs[thrift_request.thrift_file]
+            service = thrift_spec[thrift_request.service_name]
             return getattr(client, thrift_request.endpoint_name)(
-                self.translate_request_body(thrift_request)
+                **_translate_request_body(
+                    service.endpoints[thrift_request.endpoint_name],
+                    thrift_request.request_body,
+                )
             )

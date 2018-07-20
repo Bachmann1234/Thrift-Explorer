@@ -138,4 +138,13 @@ class BaseType(object):
         String representing the underlying thrift type
     """
 
+    # Thriftpy lists more types then the thrift docs
+    # The thrift docs can be be out of date but
+    # I think I am going to defer to them
+    string_types = {"STRING"}
+    int_types = {"I16", "I32", "i64"}
+    float_types = {"DOUBLE"}
+    boolean_types = {"BOOL"}
+    byte_types = {"BYTE", "BINARY"}
+
     ttype = attr.ib()
