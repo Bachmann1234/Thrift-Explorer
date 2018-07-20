@@ -1,12 +1,13 @@
 import os
-from time import sleep
 from multiprocessing import Process
+from time import sleep
+
 import pytest
 import thriftpy
+from thrift_explorer.thrift_manager import ThriftManager
+from thrift_explorer.thrift_models import ServiceEndpoint
 from thriftpy.rpc import make_client
 from todoserver.service import run_server
-from thrift_explorer.thrift_models import ServiceEndpoint
-from thrift_explorer.thrift_manager import ThriftManager
 
 
 @pytest.fixture(scope="session")
