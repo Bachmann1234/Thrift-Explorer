@@ -17,6 +17,7 @@ astroid = "*"
 pylint = "*"
 pytest-cov = "*"
 twine = "*"
+isort = "*"
 
 [pipenv]
 allow_prereleases = true
