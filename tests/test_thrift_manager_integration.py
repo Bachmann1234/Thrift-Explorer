@@ -1,4 +1,5 @@
 import pytest
+
 from thrift_explorer.communication_models import ThriftRequest
 
 pytestmark = pytest.mark.uses_server
@@ -33,3 +34,12 @@ def test_complete_task_found(
     assert response is None
     with pytest.raises(todo_thrift.Exceptions.NotFound):
         assert todo_client.getTask(task.taskId)
+
+
+def test_create_task(todo_server, todo_client, todo_thrift, example_thrift_manager):
+    response = example_thrift_manager.make_request(
+        _build_request(
+            "createTask", {"description": "my task", "dueDate": "1531966806272"}
+        )
+    )
+    assert response
