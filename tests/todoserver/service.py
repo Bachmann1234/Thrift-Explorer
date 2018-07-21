@@ -1,5 +1,6 @@
 import os
 import sqlite3
+
 import thriftpy
 from thriftpy.rpc import make_server
 
@@ -22,6 +23,12 @@ def _get_db():
             "create table if not exists task (id integer primary key, description varchar, duedate varchar);"
         )
     return db
+
+
+def clear_db():
+    db = sqlite3.connect("todo.sqlite3")
+    with db:
+        db.execute("delete from task;")
 
 
 def _create_task(db_row):

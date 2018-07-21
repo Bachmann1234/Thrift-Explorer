@@ -1,6 +1,7 @@
 import pytest
 
 from thrift_explorer.communication_models import ThriftRequest
+from todoserver import service
 
 pytestmark = pytest.mark.uses_server
 
@@ -16,6 +17,11 @@ def _build_request(method, body):
         transport="BUFFERED",
         request_body=body,
     )
+
+
+@pytest.fixture(autouse=True)
+def clear_todo_db():
+    service.clear_db()
 
 
 def test_ping(todo_server, example_thrift_manager):
@@ -42,4 +48,9 @@ def test_create_task(todo_server, todo_client, todo_thrift, example_thrift_manag
             "createTask", {"description": "my task", "dueDate": "1531966806272"}
         )
     )
-    assert response
+    assert {
+        "__thrift_struct_class__": "Task",
+        "description": "my task",
+        "dueDate": "1531966806272",
+        "taskId": "1",
+    } == response

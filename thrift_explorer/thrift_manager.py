@@ -62,6 +62,26 @@ def translate_request_body(endpoint, request_body, thrift_module):
     return processed_args
 
 
+def translate_thrift_response(response):
+    if not response:
+        return response
+    elif isinstance(response, (list,)):
+        return [translate_thrift_response(prop) for prop in response]
+    elif isinstance(response, (set,)):
+        return {translate_thrift_response(prop) for prop in response}
+    elif isinstance(response, (dict,)):
+        return {
+            translate_thrift_response(key): translate_thrift_response(value)
+            for key, value in response.items()
+        }
+    elif hasattr(response, "thrift_spec"):
+        struct = {"__thrift_struct_class__": response.__class__.__name__}
+        for _, name, _ in response.thrift_spec.values():
+            struct[name] = getattr(response, name, None)
+        return struct
+    return response
+
+
 class ThriftManager(object):
     def __init__(self, thrift_directory):
         self.thrift_directory = thrift_directory
@@ -82,10 +102,11 @@ class ThriftManager(object):
             thrift_spec = self.service_specs[thrift_request.thrift_file]
             service_spec = thrift_spec[thrift_request.service_name]
             client_method = getattr(client, thrift_request.endpoint_name)
-            return client_method(
+            response = client_method(
                 **translate_request_body(
                     service_spec.endpoints[thrift_request.endpoint_name],
                     thrift_request.request_body,
                     thriftpy_service,
                 )
             )
+            return translate_thrift_response(response)

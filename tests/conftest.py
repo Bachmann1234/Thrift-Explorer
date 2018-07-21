@@ -4,9 +4,10 @@ from time import sleep
 
 import pytest
 import thriftpy
+from thriftpy.rpc import make_client
+
 from thrift_explorer.thrift_manager import ThriftManager
 from thrift_explorer.thrift_models import ServiceEndpoint
-from thriftpy.rpc import make_client
 from todoserver.service import run_server
 
 
