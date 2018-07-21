@@ -9,7 +9,6 @@ from thriftpy.protocol import (
 )
 
 from thrift_explorer.communication_models import Protocol, Transport
-from thrift_explorer.request_translator import translate_request_body
 from thrift_explorer.thrift_parser import parse_service_specs
 
 
@@ -40,6 +39,29 @@ def _find_transport_factory(transport):
     raise ValueError("Invalid transport {}".format(transport))
 
 
+def translate_request_body(endpoint, request_body, thrift_module):
+    """
+    Translate the request dictionary into whatever arguments
+    are required to make the call with the thrift client
+
+    This method assumes the request body had been validated and is correct
+
+    endpoint: The endpoint spec as parsed by ThriftManager
+
+    request_body: dictionary containing the args that should match
+    the service. The values should have been validated before hitting
+    this method
+
+    thrift_module: thrift file as loaded in by thriftpy.load
+    """
+    processed_args = {}
+    for arg_spec in endpoint.args:
+        processed_args[arg_spec.name] = arg_spec.type_info.format_arg_for_thrift(
+            request_body[arg_spec.name], thrift_module
+        )
+    return processed_args
+
+
 class ThriftManager(object):
     def __init__(self, thrift_directory):
         self.thrift_directory = thrift_directory
@@ -47,20 +69,23 @@ class ThriftManager(object):
         self.service_specs = parse_service_specs(self._thrifts)
 
     def make_request(self, thrift_request):
+        thriftpy_service = getattr(
+            self._thrifts[thrift_request.thrift_file], thrift_request.service_name
+        )
         with thriftpy.rpc.client_context(
-            service=getattr(
-                self._thrifts[thrift_request.thrift_file], thrift_request.service_name
-            ),
+            service=thriftpy_service,
             host=thrift_request.host,
             port=thrift_request.port,
             proto_factory=_find_protocol_factory(thrift_request.protocol),
             trans_factory=_find_transport_factory(thrift_request.transport),
         ) as client:
             thrift_spec = self.service_specs[thrift_request.thrift_file]
-            service = thrift_spec[thrift_request.service_name]
-            return getattr(client, thrift_request.endpoint_name)(
+            service_spec = thrift_spec[thrift_request.service_name]
+            client_method = getattr(client, thrift_request.endpoint_name)
+            return client_method(
                 **translate_request_body(
-                    service.endpoints[thrift_request.endpoint_name],
+                    service_spec.endpoints[thrift_request.endpoint_name],
                     thrift_request.request_body,
+                    thriftpy_service,
                 )
             )

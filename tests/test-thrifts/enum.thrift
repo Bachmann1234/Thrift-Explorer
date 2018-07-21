@@ -6,5 +6,6 @@ enum Superhero {
 }
 
 service HeroService {
-    Superhero getHero()
+    Superhero getHero();
+    void saveHero(0: Superhero hero);
 }

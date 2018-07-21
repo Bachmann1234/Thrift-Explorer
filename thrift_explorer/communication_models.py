@@ -40,7 +40,7 @@ class ThriftRequest(object):
         thrift_file: str
             The thrift where the service being called is defined
         service_name: str
-            Name of the service being called 
+            Name of the service being called
         endpoint_name: str
             Endpoint being requested
         host: str

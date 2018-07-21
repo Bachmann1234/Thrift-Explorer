@@ -9,5 +9,6 @@ struct MyStruct {
 }
 
 service StructService {
-    MyStruct getMyStruct()
+    MyStruct getMyStruct();
+    void sendMyStruct(0: MyStruct myStruct);
 }

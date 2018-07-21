@@ -73,18 +73,37 @@ class StructType(object):
     fields = attr.ib()
     ttype = attr.ib(default="STRUCT")
 
+    def format_arg_for_thrift(self, raw_arg, thrift_module):
+        clazz = getattr(thrift_module, self.name)
+        return clazz(
+            **{
+                field.name: field.type_info.format_arg_for_thrift(
+                    raw_arg[field.name], thrift_module
+                )
+                for field in self.fields
+            }
+        )
+
 
 @attr.s(frozen=True)
 class CollectionType(object):
     """
     Spec for a list or a set type
-    value_type: BaseType|MapType|CollectionType|StructType|EnumType 
+    value_type: BaseType|MapType|CollectionType|StructType|EnumType
         Specification for the type the collection contains
     ttype: the type, (always SET or LIST)
     """
 
     value_type = attr.ib()
     ttype = attr.ib()
+
+    def format_arg_for_thrift(self, raw_arg, thrift_module):
+        result = [
+            self.value_type.format_arg_for_thrift(arg, thrift_module) for arg in raw_arg
+        ]
+        if self.ttype == "SET":
+            return set(result)
+        return result
 
 
 @attr.s(frozen=True)
@@ -102,6 +121,14 @@ class MapType(object):
     key_type = attr.ib()
     value_type = attr.ib()
     ttype = attr.ib(default="MAP")
+
+    def format_arg_for_thrift(self, raw_arg, thrift_module):
+        return {
+            self.key_type.format_arg_for_thrift(
+                key, thrift_module
+            ): self.value_type.format_arg_for_thrift(value, thrift_module)
+            for key, value in raw_arg.items()
+        }
 
 
 @attr.s(frozen=True)
@@ -129,6 +156,17 @@ class EnumType(object):
     values_to_names = attr.ib()
     ttype = attr.ib(default="I32")
 
+    def format_arg_for_thrift(self, raw_arg, _):
+        """
+        When making the reqeust we want to send the
+        int value. If you pass an int we will just return it
+        otherwise we will translate the name to its int value.
+        """
+        try:
+            return int(raw_arg)
+        except ValueError:
+            return self.names_to_values[raw_arg]
+
 
 @attr.s(frozen=True)
 class BaseType(object):
@@ -142,9 +180,16 @@ class BaseType(object):
     # The thrift docs can be be out of date but
     # I think I am going to defer to them
     string_types = {"STRING"}
-    int_types = {"I16", "I32", "i64"}
+    int_types = {"I16", "I32", "I64"}
     float_types = {"DOUBLE"}
     boolean_types = {"BOOL"}
     byte_types = {"BYTE", "BINARY"}
 
     ttype = attr.ib()
+
+    def format_arg_for_thrift(self, raw_arg, _):
+        if self.ttype in self.int_types:
+            return int(raw_arg)
+        elif self.ttype in self.float_types:
+            return float(raw_arg)
+        return raw_arg
