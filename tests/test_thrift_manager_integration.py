@@ -1,3 +1,5 @@
+import datetime
+
 import pytest
 
 from thrift_explorer.communication_models import ThriftRequest
@@ -19,54 +21,71 @@ def _build_request(method, body):
     )
 
 
+def _timedelta_assertions(response):
+    # MAybe ill come up with a better way of testing this
+    # I dont think this functionality is worth monkeypatching
+    assert response.elapsed > datetime.timedelta()
+    assert response.connection_elapsed > datetime.timedelta()
+
+
 @pytest.fixture(autouse=True)
 def clear_todo_db():
     service.clear_db()
 
 
 def test_ping(todo_server, example_thrift_manager):
-    response = example_thrift_manager.make_request(_build_request("ping", {}))
-    assert not response
+    request = _build_request("ping", {})
+    response = example_thrift_manager.make_request(request)
+    assert response.data is None
+    assert response.request == request
+    assert response.status == "success"
+    _timedelta_assertions(response)
 
 
 def test_complete_task_found(
     todo_server, todo_client, todo_thrift, example_thrift_manager
 ):
     task = todo_client.createTask("test task", "1531966806272")
+    request = _build_request("completeTask", {"taskId": task.taskId})
     assert todo_client.getTask(task.taskId).description == "test task"
-    response = example_thrift_manager.make_request(
-        _build_request("completeTask", {"taskId": task.taskId})
-    )
-    assert response is None
+    response = example_thrift_manager.make_request(request)
+    assert response.data is None
+    assert response.request == request
+    assert response.status == "success"
+    _timedelta_assertions(response)
     with pytest.raises(todo_thrift.Exceptions.NotFound):
         assert todo_client.getTask(task.taskId)
 
 
 def test_create_task(todo_server, todo_client, todo_thrift, example_thrift_manager):
-    response = example_thrift_manager.make_request(
-        _build_request(
-            "createTask", {"description": "my task", "dueDate": "1531966806272"}
-        )
+    request = _build_request(
+        "createTask", {"description": "my task", "dueDate": "1531966806272"}
     )
+    response = example_thrift_manager.make_request(request)
     assert {
         "__thrift_struct_class__": "Task",
         "description": "my task",
         "dueDate": "1531966806272",
         "taskId": "1",
-    } == response
+    } == response.data
+    assert response.request == request
+    assert response.status == "success"
+    _timedelta_assertions(response)
 
 
 def test_get_task(todo_server, todo_client, example_thrift_manager):
     task = todo_client.createTask("test task", "1531966806272")
-    response = example_thrift_manager.make_request(
-        _build_request("getTask", {"taskId": task.taskId})
-    )
-    assert response == {
+    request = _build_request("getTask", {"taskId": task.taskId})
+    response = example_thrift_manager.make_request(request)
+    assert response.data == {
         "__thrift_struct_class__": "Task",
         "description": "test task",
         "dueDate": "1531966806272",
         "taskId": "1",
     }
+    assert response.request == request
+    assert response.status == "success"
+    _timedelta_assertions(response)
 
 
 def test_list_tasks(todo_server, todo_client, example_thrift_manager):
@@ -74,7 +93,8 @@ def test_list_tasks(todo_server, todo_client, example_thrift_manager):
     todo_client.createTask("test task two", "due 2")
     todo_client.createTask("test task three", "due 3")
 
-    response = example_thrift_manager.make_request(_build_request("listTasks", {}))
+    request = _build_request("listTasks", {})
+    response = example_thrift_manager.make_request(request)
 
     assert [
         {
@@ -95,4 +115,16 @@ def test_list_tasks(todo_server, todo_client, example_thrift_manager):
             "dueDate": "due 3",
             "taskId": "3",
         },
-    ] == response
+    ] == response.data
+    assert response.request == request
+    assert response.status == "success"
+    _timedelta_assertions(response)
+
+
+def test_handle_exception(todo_server, example_thrift_manager):
+    request = _build_request("getTask", {"taskId": "whatever"})
+    response = example_thrift_manager.make_request(request)
+    assert response.data == {"__thrift_struct_class__": "NotFound"}
+    assert response.request == request
+    assert response.status == "NotFound"
+    _timedelta_assertions(response)

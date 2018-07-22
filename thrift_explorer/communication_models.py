@@ -70,3 +70,22 @@ class ThriftRequest(object):
     protocol = attr.ib(converter=Protocol.from_string)
     transport = attr.ib(converter=Transport.from_string)
     request_body = attr.ib(default=attr.Factory(dict))
+
+
+@attr.s(frozen=True)
+class ThriftResponse(object):
+    """
+        Model containing the data representing a thrift response
+
+        status: String representing the type of response 'success' or some exception
+        request: ThriftRequest used to make this response
+        data: dict with the response data
+        elapsed: datetime.timedelta Time to make the request 
+        connection_elapsed: datetime.timedelta Time to create the client and connect
+    """
+
+    status = attr.ib()
+    request = attr.ib()
+    data = attr.ib()
+    elapsed = attr.ib()
+    connection_elapsed = attr.ib()

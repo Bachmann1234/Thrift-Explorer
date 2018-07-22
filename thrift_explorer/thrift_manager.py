@@ -1,3 +1,4 @@
+import datetime
 import glob
 import os
 
@@ -8,7 +9,7 @@ from thriftpy.protocol import (
     TJSONProtocolFactory,
 )
 
-from thrift_explorer.communication_models import Protocol, Transport
+from thrift_explorer.communication_models import Protocol, ThriftResponse, Transport
 from thrift_explorer.thrift_parser import parse_service_specs
 
 
@@ -86,6 +87,21 @@ def translate_thrift_response(response):
     return response
 
 
+def find_request_exceptions(possible_results):
+    exceptions = []
+    for result in possible_results.thrift_spec.values():
+        try:
+            _, _, clazz, _ = result
+            if issubclass(clazz, BaseException):
+                exceptions.append(clazz)
+        except TypeError:
+            # Exceptions must be classes.
+            # Results that dont blow up into 4
+            # values cannot be classes
+            pass
+    return tuple(exceptions)
+
+
 class ThriftManager(object):
     def __init__(self, thrift_directory):
         self.thrift_directory = thrift_directory
@@ -96,6 +112,7 @@ class ThriftManager(object):
         thriftpy_service = getattr(
             self._thrifts[thrift_request.thrift_file], thrift_request.service_name
         )
+        time_before_client = datetime.datetime.now()
         with thriftpy.rpc.client_context(
             service=thriftpy_service,
             host=thrift_request.host,
@@ -103,14 +120,32 @@ class ThriftManager(object):
             proto_factory=_find_protocol_factory(thrift_request.protocol),
             trans_factory=_find_transport_factory(thrift_request.transport),
         ) as client:
+            time_after_client = datetime.datetime.now()
             thrift_spec = self.service_specs[thrift_request.thrift_file]
             service_spec = thrift_spec[thrift_request.service_name]
             client_method = getattr(client, thrift_request.endpoint_name)
-            response = client_method(
-                **translate_request_body(
-                    service_spec.endpoints[thrift_request.endpoint_name],
-                    thrift_request.request_body,
-                    thriftpy_service,
-                )
+            possible_results = getattr(
+                thriftpy_service, "{}_result".format(thrift_request.endpoint_name)
             )
-            return translate_thrift_response(response)
+            request_body = translate_request_body(
+                service_spec.endpoints[thrift_request.endpoint_name],
+                thrift_request.request_body,
+                thriftpy_service,
+            )
+            possible_exceptions = find_request_exceptions(possible_results)
+            time_before_request = datetime.datetime.now()
+            try:
+                response = client_method(**request_body)
+                status = "success"
+            except possible_exceptions as exception:
+                status = exception.__class__.__name__
+                response = exception
+            time_after_request = datetime.datetime.now()
+            response_body = translate_thrift_response(response)
+            return ThriftResponse(
+                status=status,
+                request=thrift_request,
+                data=response_body,
+                elapsed=time_after_request - time_before_request,
+                connection_elapsed=time_after_client - time_before_client,
+            )
