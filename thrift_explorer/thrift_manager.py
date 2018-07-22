@@ -8,6 +8,7 @@ from thriftpy.protocol import (
     TCompactProtocolFactory,
     TJSONProtocolFactory,
 )
+from thriftpy.thrift import TException
 
 from thrift_explorer.communication_models import Protocol, ThriftResponse, Transport
 from thrift_explorer.thrift_parser import parse_service_specs
@@ -105,49 +106,96 @@ def find_request_exceptions(thriftpy_service, thrift_request):
     return tuple(exceptions)
 
 
+def _make_client_call(
+    client, time_after_client, thrift_request, thriftpy_service, endpoint_spec
+):
+    translated_request_body = translate_request_body(
+        endpoint_spec, thrift_request.request_body, thriftpy_service
+    )
+    time_before_request = datetime.datetime.now()
+    try:
+        response = getattr(client, thrift_request.endpoint_name)(
+            **translated_request_body
+        )
+        status = "Success"
+    except find_request_exceptions(thriftpy_service, thrift_request) as exception:
+        status = exception.__class__.__name__
+        response = exception
+    except TException as exception:
+        status = "ServerError"
+        response = "Failed to make call: {}".format(getattr(exception, "message"))
+    response_body = translate_thrift_response(response)
+    return ThriftResponse(
+        status=status,
+        request=thrift_request,
+        data=response_body,
+        time_to_make_reqeust=datetime.datetime.now() - time_before_request,
+        time_to_connect=time_after_client,
+    )
+
+
 class ThriftManager(object):
     def __init__(self, thrift_directory):
         self.thrift_directory = thrift_directory
         self._thrifts = _load_thrifts(self.thrift_directory)
         self.service_specs = parse_service_specs(self._thrifts)
 
+    def validate_request(self, thrift_request):
+        try:
+            thrift_spec = self.service_specs[thrift_request.thrift_file]
+        except KeyError:
+            return None
+        try:
+            service_spec = thrift_spec[thrift_request.service_name]
+        except KeyError:
+            return None
+        try:
+            endpoint_spec = service_spec.endpoints[thrift_request.endpoint_name]
+        except KeyError:
+            return None
+
+        validation_errors = []
+        for arg_spec in endpoint_spec.args:
+            try:
+                pass
+            except KeyError:
+                pass
+        return validation_errors
+
     def make_request(self, thrift_request):
         thriftpy_service = getattr(
             self._thrifts[thrift_request.thrift_file], thrift_request.service_name
         )
+        thrift_spec = self.service_specs[thrift_request.thrift_file]
+        endpoint_spec = thrift_spec[thrift_request.service_name].endpoints[
+            thrift_request.endpoint_name
+        ]
         time_before_client = datetime.datetime.now()
-        with thriftpy.rpc.client_context(
-            service=thriftpy_service,
-            host=thrift_request.host,
-            port=thrift_request.port,
-            proto_factory=_find_protocol_factory(thrift_request.protocol),
-            trans_factory=_find_transport_factory(thrift_request.transport),
-        ) as client:
-            time_after_client = datetime.datetime.now()
-            thrift_spec = self.service_specs[thrift_request.thrift_file]
-            translated_request_body = translate_request_body(
-                thrift_spec[thrift_request.service_name].endpoints[
-                    thrift_request.endpoint_name
-                ],
-                thrift_request.request_body,
-                thriftpy_service,
-            )
-            time_before_request = datetime.datetime.now()
-            try:
-                response = getattr(client, thrift_request.endpoint_name)(
-                    **translated_request_body
+        try:
+            with thriftpy.rpc.client_context(
+                service=thriftpy_service,
+                host=thrift_request.host,
+                port=thrift_request.port,
+                proto_factory=_find_protocol_factory(thrift_request.protocol),
+                trans_factory=_find_transport_factory(thrift_request.transport),
+            ) as client:
+                time_after_client = datetime.datetime.now() - time_before_client
+                return _make_client_call(
+                    client,
+                    time_after_client,
+                    thrift_request,
+                    thriftpy_service,
+                    endpoint_spec,
                 )
-                status = "success"
-            except find_request_exceptions(
-                thriftpy_service, thrift_request
-            ) as exception:
-                status = exception.__class__.__name__
-                response = exception
-            response_body = translate_thrift_response(response)
+        except TException as exception:
+            status = "ConnectionError"
+            response = "Failed to make client connection: {}".format(
+                getattr(exception, "message")
+            )
             return ThriftResponse(
                 status=status,
                 request=thrift_request,
-                data=response_body,
-                elapsed=datetime.datetime.now() - time_before_request,
-                connection_elapsed=time_after_client - time_before_client,
+                data=response,
+                time_to_make_reqeust=None,
+                time_to_connect=None,
             )

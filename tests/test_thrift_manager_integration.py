@@ -8,24 +8,17 @@ from todoserver import service
 pytestmark = pytest.mark.uses_server
 
 
-def _build_request(method, body):
+def _build_request(method, body, port="6000"):
     return ThriftRequest(
         thrift_file="todo.thrift",
         service_name="TodoService",
         endpoint_name=method,
         host="127.0.0.1",
-        port="6000",
+        port=port,
         protocol="BINARY",
         transport="BUFFERED",
         request_body=body,
     )
-
-
-def _timedelta_assertions(response):
-    # MAybe ill come up with a better way of testing this
-    # I dont think this functionality is worth monkeypatching
-    assert response.elapsed > datetime.timedelta()
-    assert response.connection_elapsed > datetime.timedelta()
 
 
 @pytest.fixture(autouse=True)
@@ -38,8 +31,9 @@ def test_ping(todo_server, example_thrift_manager):
     response = example_thrift_manager.make_request(request)
     assert response.data is None
     assert response.request == request
-    assert response.status == "success"
-    _timedelta_assertions(response)
+    assert response.status == "Success"
+    assert response.time_to_connect > datetime.timedelta()
+    assert response.time_to_make_reqeust > datetime.timedelta()
 
 
 def test_complete_task_found(
@@ -51,8 +45,9 @@ def test_complete_task_found(
     response = example_thrift_manager.make_request(request)
     assert response.data is None
     assert response.request == request
-    assert response.status == "success"
-    _timedelta_assertions(response)
+    assert response.status == "Success"
+    assert response.time_to_connect > datetime.timedelta()
+    assert response.time_to_make_reqeust > datetime.timedelta()
     with pytest.raises(todo_thrift.Exceptions.NotFound):
         assert todo_client.getTask(task.taskId)
 
@@ -69,8 +64,9 @@ def test_create_task(todo_server, todo_client, todo_thrift, example_thrift_manag
         "taskId": "1",
     } == response.data
     assert response.request == request
-    assert response.status == "success"
-    _timedelta_assertions(response)
+    assert response.status == "Success"
+    assert response.time_to_connect > datetime.timedelta()
+    assert response.time_to_make_reqeust > datetime.timedelta()
 
 
 def test_get_task(todo_server, todo_client, example_thrift_manager):
@@ -84,8 +80,9 @@ def test_get_task(todo_server, todo_client, example_thrift_manager):
         "taskId": "1",
     }
     assert response.request == request
-    assert response.status == "success"
-    _timedelta_assertions(response)
+    assert response.status == "Success"
+    assert response.time_to_connect > datetime.timedelta()
+    assert response.time_to_make_reqeust > datetime.timedelta()
 
 
 def test_list_tasks(todo_server, todo_client, example_thrift_manager):
@@ -117,8 +114,9 @@ def test_list_tasks(todo_server, todo_client, example_thrift_manager):
         },
     ] == response.data
     assert response.request == request
-    assert response.status == "success"
-    _timedelta_assertions(response)
+    assert response.status == "Success"
+    assert response.time_to_connect > datetime.timedelta()
+    assert response.time_to_make_reqeust > datetime.timedelta()
 
 
 def test_handle_exception(todo_server, example_thrift_manager):
@@ -127,4 +125,31 @@ def test_handle_exception(todo_server, example_thrift_manager):
     assert response.data == {"__thrift_struct_class__": "NotFound"}
     assert response.request == request
     assert response.status == "NotFound"
-    _timedelta_assertions(response)
+    assert response.time_to_connect > datetime.timedelta()
+    assert response.time_to_make_reqeust > datetime.timedelta()
+
+
+def test_handle_unimplemented_method(todo_server, example_thrift_manager):
+    # Designed to handle the case where the client thrift and the server
+    # thrift are incompatible. In this case its a client method not handled
+    # by the server
+    request = _build_request("fancyNewMethod", {})
+    response = example_thrift_manager.make_request(request)
+    assert response.data == "Failed to make call: TSocket read 0 bytes"
+    assert response.request == request
+    assert response.status == "ServerError"
+    assert response.time_to_connect > datetime.timedelta()
+    assert response.time_to_make_reqeust > datetime.timedelta()
+
+
+def test_invalid_port(todo_server, example_thrift_manager):
+    request = _build_request("ping", {}, port=9999)
+    response = example_thrift_manager.make_request(request)
+    assert (
+        response.data
+        == "Failed to make client connection: Could not connect to ('127.0.0.1', 9999)"
+    )
+    assert response.request == request
+    assert response.status == "ConnectionError"
+    assert response.time_to_connect is None
+    assert response.time_to_make_reqeust is None

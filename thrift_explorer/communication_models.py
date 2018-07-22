@@ -80,12 +80,29 @@ class ThriftResponse(object):
         status: String representing the type of response 'success' or some exception
         request: ThriftRequest used to make this response
         data: dict with the response data
-        elapsed: datetime.timedelta Time to make the request 
-        connection_elapsed: datetime.timedelta Time to create the client and connect
+        time_to_make_reqeust: datetime.timedelta Time to make the request
+        time_to_connect: datetime.timedelta Time to make the initial connection
     """
 
     status = attr.ib()
     request = attr.ib()
     data = attr.ib()
-    elapsed = attr.ib()
-    connection_elapsed = attr.ib()
+    time_to_make_reqeust = attr.ib()
+    time_to_connect = attr.ib()
+
+
+class ValidationError(Exception):
+    def __init__(self, errors):
+        super(ValidationError, self).__init__()
+        self.errors = errors
+
+
+@attr.s(frozen=True)
+class Error(object):
+    message = attr.ib()
+
+
+@attr.s(frozen=True)
+class FieldError(object):
+    field = attr.ib()
+    message = attr.ib()
