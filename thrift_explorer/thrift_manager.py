@@ -76,8 +76,12 @@ def translate_thrift_response(response):
         }
     elif hasattr(response, "thrift_spec"):
         struct = {"__thrift_struct_class__": response.__class__.__name__}
-        for _, name, _ in response.thrift_spec.values():
-            struct[name] = getattr(response, name, None)
+        for thrift_spec_parts in response.thrift_spec.values():
+            try:
+                _, name, _ = thrift_spec_parts
+            except ValueError:
+                _, name, _, _ = thrift_spec_parts
+            struct[name] = translate_thrift_response(getattr(response, name, None))
         return struct
     return response
 
