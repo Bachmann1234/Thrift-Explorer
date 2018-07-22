@@ -20,7 +20,7 @@ def _get_db():
     db = sqlite3.connect("todo.sqlite3")
     with db:
         db.execute(
-            "create table if not exists task (id integer primary key, description varchar, duedate varchar);"
+            "CREATE TABLE IF NOT EXISTS task (id integer primary key, description varchar, duedate varchar);"
         )
     return db
 
@@ -28,7 +28,7 @@ def _get_db():
 def clear_db():
     db = sqlite3.connect("todo.sqlite3")
     with db:
-        db.execute("delete from task;")
+        db.execute("DROP TABLE IF EXISTS task;")
 
 
 def _create_task(db_row):
