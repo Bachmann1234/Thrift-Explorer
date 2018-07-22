@@ -87,7 +87,10 @@ def translate_thrift_response(response):
     return response
 
 
-def find_request_exceptions(possible_results):
+def find_request_exceptions(thriftpy_service, thrift_request):
+    possible_results = getattr(
+        thriftpy_service, "{}_result".format(thrift_request.endpoint_name)
+    )
     exceptions = []
     for result in possible_results.thrift_spec.values():
         try:
@@ -122,30 +125,29 @@ class ThriftManager(object):
         ) as client:
             time_after_client = datetime.datetime.now()
             thrift_spec = self.service_specs[thrift_request.thrift_file]
-            service_spec = thrift_spec[thrift_request.service_name]
-            client_method = getattr(client, thrift_request.endpoint_name)
-            possible_results = getattr(
-                thriftpy_service, "{}_result".format(thrift_request.endpoint_name)
-            )
-            request_body = translate_request_body(
-                service_spec.endpoints[thrift_request.endpoint_name],
+            translated_request_body = translate_request_body(
+                thrift_spec[thrift_request.service_name].endpoints[
+                    thrift_request.endpoint_name
+                ],
                 thrift_request.request_body,
                 thriftpy_service,
             )
-            possible_exceptions = find_request_exceptions(possible_results)
             time_before_request = datetime.datetime.now()
             try:
-                response = client_method(**request_body)
+                response = getattr(client, thrift_request.endpoint_name)(
+                    **translated_request_body
+                )
                 status = "success"
-            except possible_exceptions as exception:
+            except find_request_exceptions(
+                thriftpy_service, thrift_request
+            ) as exception:
                 status = exception.__class__.__name__
                 response = exception
-            time_after_request = datetime.datetime.now()
             response_body = translate_thrift_response(response)
             return ThriftResponse(
                 status=status,
                 request=thrift_request,
                 data=response_body,
-                elapsed=time_after_request - time_before_request,
+                elapsed=datetime.datetime.now() - time_before_request,
                 connection_elapsed=time_after_client - time_before_client,
             )
