@@ -119,6 +119,16 @@ def test_list_tasks(todo_server, todo_client, example_thrift_manager):
     assert response.time_to_make_reqeust > datetime.timedelta()
 
 
+def test_count_tasks(todo_server, todo_client, example_thrift_manager):
+    todo_client.createTask("test task one", "due 1")
+    todo_client.createTask("test task two", "due 2")
+    todo_client.createTask("test task three", "due 3")
+
+    request = _build_request("numTasks", {})
+    response = example_thrift_manager.make_request(request)
+    assert 3 == response.data
+
+
 def test_handle_exception(todo_server, example_thrift_manager):
     request = _build_request("getTask", {"taskId": "whatever"})
     response = example_thrift_manager.make_request(request)

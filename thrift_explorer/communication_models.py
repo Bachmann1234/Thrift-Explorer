@@ -9,7 +9,7 @@
     finagle protocol
     mutliplex protocol
 """
-from enum import Enum
+from enum import Enum, auto
 
 import attr
 
@@ -91,18 +91,20 @@ class ThriftResponse(object):
     time_to_connect = attr.ib()
 
 
-class ValidationError(Exception):
-    def __init__(self, errors):
-        super(ValidationError, self).__init__()
-        self.errors = errors
+class ErrorCode(Enum):
+    THRIFT_NOT_LOADED = auto()
+    SERVICE_NOT_IN_THRIFT = auto()
+    ENDPOINT_NOT_IN_SERVICE = auto()
+    REQUIRED_FIELD_MISSING = auto()
+    TYPE_MISMATCH = auto()
 
 
 @attr.s(frozen=True)
 class Error(object):
+    code = attr.ib()
     message = attr.ib()
 
 
 @attr.s(frozen=True)
-class FieldError(object):
-    field = attr.ib()
-    message = attr.ib()
+class FieldError(Error):
+    arg_spec = attr.ib()

@@ -42,6 +42,9 @@ class Dispatcher(object):
     def ping(self):
         print("Pong")
 
+    def numTasks(self):
+        return len(self.listTasks())
+
     def listTasks(self):
         cursor = _get_db().cursor()
         cursor.execute("select * from task;")

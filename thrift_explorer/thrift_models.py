@@ -193,3 +193,6 @@ class BaseType(object):
         elif self.ttype in self.float_types:
             return float(raw_arg)
         return raw_arg
+
+    def validate_arg(self, raw_arg):
+        pass

@@ -1,7 +1,29 @@
 import pytest
+
 from testing_utils import load_thrift_from_testdir
 from thrift_explorer import thrift_manager
-from thrift_explorer.communication_models import Protocol, Transport
+from thrift_explorer.communication_models import (
+    Error,
+    ErrorCode,
+    FieldError,
+    Protocol,
+    ThriftRequest,
+    Transport,
+)
+from thrift_explorer.thrift_models import BaseType, ThriftSpec
+
+
+def _build_request(**kwargs):
+    return ThriftRequest(
+        thrift_file=kwargs.get("thrift_file", "todo.thrift"),
+        service_name=kwargs.get("service_name", "TodoService"),
+        endpoint_name=kwargs.get("endpoint_name", "ping"),
+        host=kwargs.get("host", "127.0.0.1"),
+        port=kwargs.get("port", "6000"),
+        protocol=kwargs.get("protocol", "BINARY"),
+        transport=kwargs.get("transport", "BUFFERED"),
+        request_body=kwargs.get("request_body", {}),
+    )
 
 
 @pytest.mark.parametrize(
@@ -79,3 +101,53 @@ def test_struct_response():
             ),
         )
     )
+
+
+def test_thrift_not_loaded(example_thrift_manager):
+    request = _build_request(thrift_file="notathrift.thrift")
+    assert [
+        Error(
+            code=ErrorCode.THRIFT_NOT_LOADED,
+            message="Thrift File 'notathrift.thrift' not loaded in ThriftManager",
+        )
+    ] == example_thrift_manager.validate_request(request)
+
+
+def test_invalid_service(example_thrift_manager):
+    request = _build_request(service_name="notaservice")
+    assert [
+        Error(
+            code=ErrorCode.SERVICE_NOT_IN_THRIFT,
+            message="Service 'notaservice' not in thrift 'todo.thrift'",
+        )
+    ] == example_thrift_manager.validate_request(request)
+
+
+def test_invalid_endpoint(example_thrift_manager):
+    request = _build_request(endpoint_name="notanendpoint")
+    assert [
+        Error(
+            code=ErrorCode.ENDPOINT_NOT_IN_SERVICE,
+            message="Endpoint 'notanendpoint' not in service 'TodoService' in thrift 'todo.thrift'",
+        )
+    ] == example_thrift_manager.validate_request(request)
+
+
+def test_valid_request(example_thrift_manager):
+    request = _build_request(
+        endpoint_name="createTask", request_body={"dueDate": "313123123"}
+    )
+    assert [] == example_thrift_manager.validate_request(request)
+
+
+def test_required_argument_missing(example_thrift_manager):
+    request = _build_request(endpoint_name="completeTask", request_body={})
+    assert [
+        FieldError(
+            arg_spec=ThriftSpec(
+                name="taskId", type_info=BaseType(ttype="STRING"), required=True
+            ),
+            code=ErrorCode.REQUIRED_FIELD_MISSING,
+            message="Required Field 'taskId' not found",
+        )
+    ] == example_thrift_manager.validate_request(request)

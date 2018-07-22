@@ -10,7 +10,14 @@ from thriftpy.protocol import (
 )
 from thriftpy.thrift import TException
 
-from thrift_explorer.communication_models import Protocol, ThriftResponse, Transport
+from thrift_explorer.communication_models import (
+    Error,
+    ErrorCode,
+    FieldError,
+    Protocol,
+    ThriftResponse,
+    Transport,
+)
 from thrift_explorer.thrift_parser import parse_service_specs
 
 
@@ -94,15 +101,9 @@ def find_request_exceptions(thriftpy_service, thrift_request):
     )
     exceptions = []
     for result in possible_results.thrift_spec.values():
-        try:
-            _, _, clazz, _ = result
-            if issubclass(clazz, BaseException):
-                exceptions.append(clazz)
-        except TypeError:
-            # Exceptions must be classes.
-            # Results that dont blow up into 4
-            # values cannot be classes
-            pass
+        _, _, clazz, _ = result
+        if issubclass(clazz, BaseException):
+            exceptions.append(clazz)
     return tuple(exceptions)
 
 
@@ -144,22 +145,56 @@ class ThriftManager(object):
         try:
             thrift_spec = self.service_specs[thrift_request.thrift_file]
         except KeyError:
-            return None
+            return [
+                Error(
+                    code=ErrorCode.THRIFT_NOT_LOADED,
+                    message="Thrift File '{}' not loaded in ThriftManager".format(
+                        thrift_request.thrift_file
+                    ),
+                )
+            ]
         try:
             service_spec = thrift_spec[thrift_request.service_name]
         except KeyError:
-            return None
+            return [
+                Error(
+                    code=ErrorCode.SERVICE_NOT_IN_THRIFT,
+                    message="Service '{}' not in thrift '{}'".format(
+                        thrift_request.service_name, thrift_request.thrift_file
+                    ),
+                )
+            ]
         try:
             endpoint_spec = service_spec.endpoints[thrift_request.endpoint_name]
         except KeyError:
-            return None
+            return [
+                Error(
+                    code=ErrorCode.ENDPOINT_NOT_IN_SERVICE,
+                    message="Endpoint '{}' not in service '{}' in thrift '{}'".format(
+                        thrift_request.endpoint_name,
+                        thrift_request.service_name,
+                        thrift_request.thrift_file,
+                    ),
+                )
+            ]
 
         validation_errors = []
         for arg_spec in endpoint_spec.args:
             try:
-                pass
+                arg_spec.type_info.validate_arg(
+                    thrift_request.request_body[arg_spec.name]
+                )
             except KeyError:
-                pass
+                if arg_spec.required:
+                    validation_errors.append(
+                        FieldError(
+                            arg_spec=arg_spec,
+                            code=ErrorCode.REQUIRED_FIELD_MISSING,
+                            message="Required Field '{}' not found".format(
+                                arg_spec.name
+                            ),
+                        )
+                    )
         return validation_errors
 
     def make_request(self, thrift_request):

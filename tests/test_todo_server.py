@@ -33,4 +33,6 @@ def test_todo_service(todo_server, todo_client):
     tasks = todo_client.listTasks()
     print(tasks)
     assert [task, second_task] == tasks
+    print("count tasks")
+    assert 2 == todo_client.numTasks()
     clear_all_tasks(todo_client)

@@ -5,6 +5,8 @@ thriftpy to our thrift service specification
 """
 from collections import defaultdict
 
+from thriftpy.thrift import TType
+
 from thrift_explorer.thrift_models import (
     BaseType,
     CollectionType,
@@ -15,7 +17,6 @@ from thrift_explorer.thrift_models import (
     ThriftService,
     ThriftSpec,
 )
-from thriftpy.thrift import TType
 
 _COLLECTION_TYPES = set(["SET", "LIST"])
 
@@ -95,4 +96,5 @@ def parse_service_specs(thrifts):
                 # I'm a bit confused why this is called services and not 'methods' or 'endpoints'
                 thrift_service.thrift_services,
             )
-    return result
+    # Return a standard dict so we can more easily tell when a thrift is not loaded
+    return dict(result)
