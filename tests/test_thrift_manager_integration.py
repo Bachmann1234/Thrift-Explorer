@@ -54,3 +54,45 @@ def test_create_task(todo_server, todo_client, todo_thrift, example_thrift_manag
         "dueDate": "1531966806272",
         "taskId": "1",
     } == response
+
+
+def test_get_task(todo_server, todo_client, example_thrift_manager):
+    task = todo_client.createTask("test task", "1531966806272")
+    response = example_thrift_manager.make_request(
+        _build_request("getTask", {"taskId": task.taskId})
+    )
+    assert response == {
+        "__thrift_struct_class__": "Task",
+        "description": "test task",
+        "dueDate": "1531966806272",
+        "taskId": "1",
+    }
+
+
+def test_list_tasks(todo_server, todo_client, example_thrift_manager):
+    todo_client.createTask("test task one", "due 1")
+    todo_client.createTask("test task two", "due 2")
+    todo_client.createTask("test task three", "due 3")
+
+    response = example_thrift_manager.make_request(_build_request("listTasks", {}))
+
+    assert [
+        {
+            "__thrift_struct_class__": "Task",
+            "description": "test task one",
+            "dueDate": "due 1",
+            "taskId": "1",
+        },
+        {
+            "__thrift_struct_class__": "Task",
+            "description": "test task two",
+            "dueDate": "due 2",
+            "taskId": "2",
+        },
+        {
+            "__thrift_struct_class__": "Task",
+            "description": "test task three",
+            "dueDate": "due 3",
+            "taskId": "3",
+        },
+    ] == response
