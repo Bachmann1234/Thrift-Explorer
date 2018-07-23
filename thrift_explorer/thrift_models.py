@@ -1,3 +1,4 @@
+import sys
 from abc import ABC, abstractmethod
 
 import attr
@@ -281,51 +282,68 @@ def _numeric_validation(
 
 @attr.s(frozen=True)
 class TByte(ThriftType):
+    MIN_VALUE = -128
+    MAX_VALUE = 127
     ttype = "byte"
 
     def validate_arg(self, raw_arg):
-        return _numeric_validation(raw_arg, int, "byte", -128, 127)
+        return _numeric_validation(
+            raw_arg, int, "byte", TByte.MIN_VALUE, TByte.MAX_VALUE
+        )
 
 
 @attr.s(frozen=True)
 class TI16(ThriftType):
+    MIN_VALUE = -32768
+    MAX_VALUE = 32767
     ttype = "i16"
 
     def validate_arg(self, raw_arg):
-        return _numeric_validation(raw_arg, int, "16 bit integer", -32768, 32767)
+        return _numeric_validation(
+            raw_arg, int, "16 bit integer", TI16.MIN_VALUE, TI16.MAX_VALUE
+        )
 
 
 @attr.s(frozen=True)
 class TI32(ThriftType):
+    MIN_VALUE = -2147483248
+    MAX_VALUE = 2147483647
     ttype = "i32"
 
     def validate_arg(self, raw_arg):
         return _numeric_validation(
-            raw_arg, int, "32 bit integer", -2147483248, 2147483647
+            raw_arg, int, "32 bit integer", TI32.MIN_VALUE, TI32.MAX_VALUE
         )
 
 
 @attr.s(frozen=True)
 class TI64(ThriftType):
+    MIN_VALUE = -9223372036854775808
+    MAX_VALUE = 9223372036854775807
     ttype = "i64"
 
     def validate_arg(self, raw_arg):
         return _numeric_validation(
-            raw_arg, int, "32 bit integer", -9223372036854775808, 9223372036854775807
+            raw_arg, int, "32 bit integer", TI64.MIN_VALUE, TI64.MAX_VALUE
         )
 
 
 @attr.s(frozen=True)
 class TDouble(ThriftType):
     ttype = "double"
+    # this may bite me some day. sys.float_info implementation dependent.
+    # In thrift its 64 bit signed float. That being said if python
+    # cant represent the float I dont see what you can dol
+    # CPython is always 64 bit, pypy is the same
+    MIN_VALUE = sys.float_info.min
+    MIN_VALUE = sys.float_info.max
 
     def validate_arg(self, raw_arg):
-        if isinstance(raw_arg, int):
-            # its valid to send an int for a double
-            raw_arg = float(raw_arg)
-        return _numeric_validation(
-            raw_arg, float, "32 bit integer", -9223372036854775808, 9223372036854775807
-        )
+        if isinstance(raw_arg, float):
+            # its valid to send an i`\nt for a double
+            return None
+        else:
+            return "Provided argument is not a float"
 
 
 @attr.s(frozen=True)
@@ -336,7 +354,7 @@ class TBinary(ThriftType):
         if isinstance(raw_arg, bytes):
             return None
         else:
-            return "Provided argument is not a string"
+            return "Provided argument is not binary data"
 
 
 @attr.s(frozen=True)
