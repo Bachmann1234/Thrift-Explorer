@@ -38,9 +38,7 @@ def test_map():
     collections_thrift, services = _parse_services_for_thrift("collections.thrift")
     test_service = services["TestService"]
     assert {"mapofI16toI64": {4: 5}} == translate_request_body(
-        test_service.endpoints["maps"],
-        {"mapofI16toI64": {"4": "5"}},
-        collections_thrift,
+        test_service.endpoints["maps"], {"mapofI16toI64": {4: 5}}, collections_thrift
     )
 
 
@@ -52,10 +50,7 @@ def test_collections():
         "binarySet": {b"sdas", b"4232", b"bs"},
     } == translate_request_body(
         test_service.endpoints["setsAndLists"],
-        {
-            "listOfDoubles": ["1", "1.4", "9.323"],
-            "binarySet": {b"sdas", b"4232", b"bs"},
-        },
+        {"listOfDoubles": [1.0, 1.4, 9.323], "binarySet": {b"sdas", b"4232", b"bs"}},
         collections_thrift,
     )
 

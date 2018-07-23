@@ -19,6 +19,11 @@ def example_thrift_directory():
 
 
 @pytest.fixture(scope="session")
+def test_thrift_directory():
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), "test-thrifts")
+
+
+@pytest.fixture(scope="session")
 def todo_thrift():
     return thriftpy.load(
         os.path.join(
@@ -40,6 +45,11 @@ def todo_client(todo_thrift):
 @pytest.fixture(scope="session")
 def example_thrift_manager(example_thrift_directory):
     return ThriftManager(example_thrift_directory)
+
+
+@pytest.fixture(scope="session")
+def test_thrift_manager(test_thrift_directory):
+    return ThriftManager(test_thrift_directory)
 
 
 @pytest.fixture(scope="module")

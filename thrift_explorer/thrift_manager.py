@@ -181,9 +181,17 @@ class ThriftManager(object):
         validation_errors = []
         for arg_spec in endpoint_spec.args:
             try:
-                arg_spec.type_info.validate_arg(
+                error = arg_spec.type_info.validate_arg(
                     thrift_request.request_body[arg_spec.name]
                 )
+                if error:
+                    validation_errors.append(
+                        FieldError(
+                            arg_spec=arg_spec,
+                            code=ErrorCode.TYPE_MISMATCH,
+                            message=error,
+                        )
+                    )
             except KeyError:
                 if arg_spec.required:
                     validation_errors.append(

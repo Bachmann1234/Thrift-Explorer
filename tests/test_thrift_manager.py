@@ -10,7 +10,7 @@ from thrift_explorer.communication_models import (
     ThriftRequest,
     Transport,
 )
-from thrift_explorer.thrift_models import BaseType, ThriftSpec
+from thrift_explorer.thrift_models import ThriftSpec, TString
 
 
 def _build_request(**kwargs):
@@ -144,9 +144,7 @@ def test_required_argument_missing(example_thrift_manager):
     request = _build_request(endpoint_name="completeTask", request_body={})
     assert [
         FieldError(
-            arg_spec=ThriftSpec(
-                name="taskId", type_info=BaseType(ttype="STRING"), required=True
-            ),
+            arg_spec=ThriftSpec(name="taskId", type_info=TString(), required=True),
             code=ErrorCode.REQUIRED_FIELD_MISSING,
             message="Required Field 'taskId' not found",
         )

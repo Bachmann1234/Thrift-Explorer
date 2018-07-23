@@ -8,17 +8,32 @@ from collections import defaultdict
 from thriftpy.thrift import TType
 
 from thrift_explorer.thrift_models import (
-    BaseType,
-    CollectionType,
-    EnumType,
-    MapType,
+    TI16,
+    TI32,
+    TI64,
     ServiceEndpoint,
-    StructType,
+    TBool,
+    TByte,
+    TDouble,
+    TEnum,
     ThriftService,
     ThriftSpec,
+    TList,
+    TMap,
+    TSet,
+    TString,
+    TStruct,
 )
 
-_COLLECTION_TYPES = set(["SET", "LIST"])
+_BASIC_TYPE_MAP = {
+    "string": TString,
+    "i16": TI16,
+    "i32": TI32,
+    "i64": TI64,
+    "byte": TByte,
+    "bool": TBool,
+    "double": TDouble,
+}
 
 
 def _parse_type(type_info):
@@ -28,27 +43,25 @@ def _parse_type(type_info):
         ttype_code = type_info
         nested_type_info = None
 
-    ttype = TType._VALUES_TO_NAMES[ttype_code]
+    ttype = TType._VALUES_TO_NAMES[ttype_code].lower()
     if nested_type_info is None:
-        return BaseType(ttype)
-    elif ttype in _COLLECTION_TYPES:
-        return CollectionType(ttype=ttype, value_type=_parse_type(nested_type_info))
-    elif ttype == "MAP":
+        return _BASIC_TYPE_MAP[ttype]()
+    elif ttype == TList.ttype:
+        return TList(value_type=_parse_type(nested_type_info))
+    elif ttype == TSet.ttype:
+        return TSet(value_type=_parse_type(nested_type_info))
+    elif ttype == TMap.ttype:
         key, value = nested_type_info
-        return MapType(
-            ttype=ttype, key_type=_parse_type(key), value_type=_parse_type(value)
-        )
-    elif ttype == "STRUCT":
-        return StructType(
-            ttype=ttype,
+        return TMap(key_type=_parse_type(key), value_type=_parse_type(value))
+    elif ttype == TStruct.ttype:
+        return TStruct(
             name=nested_type_info.__name__,
             fields=[
                 _parse_arg(result) for result in nested_type_info.thrift_spec.values()
             ],
         )
     # Its a basic type but has defined nested type info. its probably an enum
-    return EnumType(
-        ttype=ttype,
+    return TEnum(
         name=nested_type_info.__name__,
         names_to_values=nested_type_info._NAMES_TO_VALUES,
         values_to_names=nested_type_info._VALUES_TO_NAMES,

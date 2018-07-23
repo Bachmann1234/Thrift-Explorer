@@ -1,13 +1,20 @@
 from testing_utils import load_thrift_from_testdir
 from thrift_explorer import thrift_parser
 from thrift_explorer.thrift_models import (
-    BaseType,
-    CollectionType,
-    EnumType,
-    MapType,
+    TI16,
+    TI32,
+    TI64,
     ServiceEndpoint,
-    StructType,
+    TBool,
+    TByte,
+    TDouble,
+    TEnum,
     ThriftSpec,
+    TList,
+    TMap,
+    TSet,
+    TString,
+    TStruct,
 )
 
 
@@ -16,12 +23,10 @@ def test_basic_thrift_types():
     expected = ServiceEndpoint(
         name="returnInt",
         args=[
-            ThriftSpec(name="intParameter", type_info=BaseType("I32"), required=False),
-            ThriftSpec(
-                name="stringParameter", type_info=BaseType("STRING"), required=False
-            ),
+            ThriftSpec(name="intParameter", type_info=TI32(), required=False),
+            ThriftSpec(name="stringParameter", type_info=TString(), required=False),
         ],
-        results=[ThriftSpec(name="success", type_info=BaseType("I32"), required=False)],
+        results=[ThriftSpec(name="success", type_info=TI32(), required=False)],
     )
     assert expected == thrift_parser._parse_thrift_endpoint(
         simple_type_thrift.__thrift_meta__["services"][0], "returnInt"
@@ -35,20 +40,16 @@ def test_set_list_types():
         args=[
             ThriftSpec(
                 name="listOfDoubles",
-                type_info=CollectionType(ttype="LIST", value_type=BaseType("DOUBLE")),
+                type_info=TList(value_type=TDouble()),
                 required=False,
             ),
             ThriftSpec(
-                name="binarySet",
-                type_info=CollectionType(ttype="SET", value_type=BaseType("STRING")),
-                required=False,
+                name="binarySet", type_info=TSet(value_type=TString()), required=False
             ),
         ],
         results=[
             ThriftSpec(
-                name="success",
-                type_info=CollectionType(ttype="SET", value_type=BaseType("BYTE")),
-                required=False,
+                name="success", type_info=TSet(value_type=TByte()), required=False
             )
         ],
     )
@@ -65,18 +66,14 @@ def test_map_type():
         args=[
             ThriftSpec(
                 name="mapofI16toI64",
-                type_info=MapType(
-                    ttype="MAP", key_type=BaseType("I16"), value_type=BaseType("I64")
-                ),
+                type_info=TMap(key_type=TI16(), value_type=TI64()),
                 required=False,
             )
         ],
         results=[
             ThriftSpec(
                 name="success",
-                type_info=MapType(
-                    ttype="MAP", key_type=BaseType("BOOL"), value_type=BaseType("BYTE")
-                ),
+                type_info=TMap(key_type=TBool(), value_type=TByte()),
                 required=False,
             )
         ],
@@ -89,20 +86,15 @@ def test_map_type():
 
 def test_struct_type():
     struct_thrift = load_thrift_from_testdir("structThrift.thrift")
-    my_int_struct = ThriftSpec(
-        name="myIntStruct", type_info=BaseType("I64"), required=True
-    )
+    my_int_struct = ThriftSpec(name="myIntStruct", type_info=TI64(), required=True)
     my_other_struct = ThriftSpec(
         name="myOtherStruct",
-        type_info=StructType(
-            ttype="STRUCT",
+        type_info=TStruct(
             name="MyOtherStruct",
             fields=[
-                ThriftSpec(name="id", type_info=BaseType("STRING"), required=True),
+                ThriftSpec(name="id", type_info=TString(), required=True),
                 ThriftSpec(
-                    name="ints",
-                    type_info=CollectionType(ttype="LIST", value_type=BaseType("I64")),
-                    required=True,
+                    name="ints", type_info=TList(value_type=TI64()), required=True
                 ),
             ],
         ),
@@ -114,10 +106,8 @@ def test_struct_type():
         results=[
             ThriftSpec(
                 name="success",
-                type_info=StructType(
-                    ttype="STRUCT",
-                    name="MyStruct",
-                    fields=[my_int_struct, my_other_struct],
+                type_info=TStruct(
+                    name="MyStruct", fields=[my_int_struct, my_other_struct]
                 ),
                 required=False,
             )
@@ -143,8 +133,7 @@ def test_enum():
         results=[
             ThriftSpec(
                 name="success",
-                type_info=EnumType(
-                    ttype="I32",
+                type_info=TEnum(
                     name="Superhero",
                     names_to_values=superhero_names_to_values,
                     values_to_names={
@@ -163,21 +152,18 @@ def test_enum():
 def test_super_nesting():
     turducken_thrift = load_thrift_from_testdir("turducken.thrift")
     dog_names_to_values = {"GOLDEN": 0, "CORGI": 1, "BASSET": 2}
-    dog_enum = EnumType(
-        ttype="I32",
+    dog_enum = TEnum(
         name="DOG",
         names_to_values=dog_names_to_values,
         values_to_names={value: key for key, value in dog_names_to_values.items()},
     )
 
-    outer_value = BaseType("I64")
-    inner_value = CollectionType(ttype="LIST", value_type=BaseType("STRING"))
-    inner_key = CollectionType(
-        ttype="SET", value_type=CollectionType(ttype="LIST", value_type=dog_enum)
-    )
-    outer_key = MapType(ttype="MAP", key_type=inner_key, value_type=inner_value)
+    outer_value = TI64()
+    inner_value = TList(value_type=TString())
+    inner_key = TSet(value_type=TList(value_type=dog_enum))
+    outer_key = TMap(key_type=inner_key, value_type=inner_value)
 
-    map_field = MapType(ttype="MAP", key_type=outer_key, value_type=outer_value)
+    map_field = TMap(key_type=outer_key, value_type=outer_value)
 
     expected = ServiceEndpoint(
         name="getTheStruct",
@@ -185,8 +171,7 @@ def test_super_nesting():
         results=[
             ThriftSpec(
                 name="success",
-                type_info=StructType(
-                    ttype="STRUCT",
+                type_info=TStruct(
                     name="TheStruct",
                     fields=[
                         ThriftSpec(
@@ -220,14 +205,11 @@ def test_exception():
         results=[
             ThriftSpec(
                 name="omg",
-                type_info=StructType(
-                    ttype="STRUCT",
+                type_info=TStruct(
                     name="OMGException",
                     fields=[
                         ThriftSpec(
-                            name="description",
-                            type_info=BaseType("STRING"),
-                            required=True,
+                            name="description", type_info=TString(), required=True
                         )
                     ],
                 ),

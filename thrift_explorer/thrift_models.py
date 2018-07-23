@@ -1,4 +1,15 @@
+from abc import ABC, abstractmethod
+
 import attr
+
+
+class ThriftType(ABC):
+    def format_arg_for_thrift(self, raw_arg, thrift_module):
+        return raw_arg
+
+    @abstractmethod
+    def validate_arg(self, raw_arg):
+        return NotImplementedError("Class must define a validation method")
 
 
 @attr.s(frozen=True)
@@ -44,7 +55,7 @@ class ThriftSpec(object):
     or a result.
     name: str
         Name of the argument/result
-    type_info: BaseType|StructType|CollectionType|MapType
+    type_info: ThriftType
         If the spec is not a base thrift type this will contain
         info required to specify the complex type
     required: bool
@@ -58,7 +69,7 @@ class ThriftSpec(object):
 
 
 @attr.s(frozen=True)
-class StructType(object):
+class TStruct(ThriftType):
     """
     Spec for a particular Struct
     name: str
@@ -66,12 +77,12 @@ class StructType(object):
     fields: list[ThriftSpec]
         Each property of the struct is its own spec
     ttype: str
-        Ttype of the object (always STRUCT)
+        Ttype of the object (always 'struct')
     """
 
     name = attr.ib()
     fields = attr.ib()
-    ttype = attr.ib(default="STRUCT")
+    ttype = "struct"
 
     def format_arg_for_thrift(self, raw_arg, thrift_module):
         clazz = getattr(thrift_module, self.name)
@@ -84,43 +95,95 @@ class StructType(object):
             }
         )
 
+    def validate_arg(self, raw_arg):
+        if not isinstance(raw_arg, dict):
+            return "Structs expect a dictionary to be passed in. I got '{}'".format(
+                raw_arg
+            )
+        errors = []
+        for field in self.fields:
+            try:
+                value = raw_arg[field.name]
+                field_validation = field.type_info.validate_arg(value)
+                if field_validation:
+                    errors.append(
+                        "Error with field '{}': '{}'".format(
+                            field.name, field_validation
+                        )
+                    )
+            except KeyError:
+                if field.required:
+                    errors.append("Required Value {} missing".format(field.name))
+
+
+def _validate_collection(collection_class, raw_arg, value_type):
+    errors = []
+    if not isinstance(raw_arg, collection_class):
+        return "Provided Value is not a set"
+    for value in raw_arg:
+        error = value_type.validate_arg(value)
+        if error:
+            errors.append(error)
+    return errors
+
 
 @attr.s(frozen=True)
-class CollectionType(object):
+class TList(ThriftType):
     """
     Spec for a list or a set type
-    value_type: BaseType|MapType|CollectionType|StructType|EnumType
+    value_type: ThriftType
         Specification for the type the collection contains
-    ttype: the type, (always SET or LIST)
+    ttype: the type, (always 'set' or 'list')
     """
 
     value_type = attr.ib()
-    ttype = attr.ib()
+    ttype = "list"
 
     def format_arg_for_thrift(self, raw_arg, thrift_module):
-        result = [
+        return [
             self.value_type.format_arg_for_thrift(arg, thrift_module) for arg in raw_arg
         ]
-        if self.ttype == "SET":
-            return set(result)
-        return result
+
+    def validate_arg(self, raw_arg):
+        return _validate_collection(list, raw_arg, self.value_type)
 
 
 @attr.s(frozen=True)
-class MapType(object):
+class TSet(ThriftType):
+    """
+    Spec for a list or a set type
+    value_type: ThriftType
+        Specification for the type the collection contains
+    ttype: the type, (always 'set' or 'list')
+    """
+
+    value_type = attr.ib()
+    ttype = "set"
+
+    def format_arg_for_thrift(self, raw_arg, thrift_module):
+        return {
+            self.value_type.format_arg_for_thrift(arg, thrift_module) for arg in raw_arg
+        }
+
+    def validate_arg(self, raw_arg):
+        return _validate_collection(set, raw_arg, self.value_type)
+
+
+@attr.s(frozen=True)
+class TMap(ThriftType):
     """
     Spec for a map type
-    key_type: BaseType|MapType|CollectionType|StructType|EnumType
+    key_type: ThriftType
         Specification for the type of the key of the map
-    value_type: BaseType|MapType|CollectionType|StructType|EnumType
+    value_type: ThriftType
         Specification for the type of the value of the map
     ttype:
-        the type (always MAP)
+        the type (always 'map')
     """
 
     key_type = attr.ib()
     value_type = attr.ib()
-    ttype = attr.ib(default="MAP")
+    ttype = "map"
 
     def format_arg_for_thrift(self, raw_arg, thrift_module):
         return {
@@ -130,9 +193,22 @@ class MapType(object):
             for key, value in raw_arg.items()
         }
 
+    def validate_arg(self, raw_arg):
+        if not isinstance(raw_arg, map):
+            return "Provided Value is not a map"
+        errors = []
+        for key, value in raw_arg.items():
+            key_validation = self.key_type.validate_arg(key)
+            value_validation = self.value_type.validate_arg(value)
+            if key_validation:
+                errors.append("Key in map invalid: '{}'".format(key_validation))
+            if key_validation:
+                errors.append("value in map invalid: '{}'".format(value_validation))
+        return errors
+
 
 @attr.s(frozen=True)
-class EnumType(object):
+class TEnum(ThriftType):
     """
     Enums in thrift are a type that holds
     an i32 value that is expected to be one
@@ -154,7 +230,7 @@ class EnumType(object):
     name = attr.ib()
     names_to_values = attr.ib()
     values_to_names = attr.ib()
-    ttype = attr.ib(default="I32")
+    ttype = "i32"
 
     def format_arg_for_thrift(self, raw_arg, _):
         """
@@ -167,32 +243,108 @@ class EnumType(object):
         except ValueError:
             return self.names_to_values[raw_arg]
 
+    def validate_arg(self, raw_arg):
+        if self.names_to_values.get(raw_arg) or self.values_to_names.get(raw_arg):
+            return None
+        else:
+            return "provided value '{}' not in enum '{}'".format(raw_arg, self.name)
+
 
 @attr.s(frozen=True)
-class BaseType(object):
-    """
-    Spec for one of thrifts 'base types'
-    ttype:
-        String representing the underlying thrift type
-    """
-
-    # Thriftpy lists more types then the thrift docs
-    # The thrift docs can be be out of date but
-    # I think I am going to defer to them
-    string_types = {"STRING"}
-    int_types = {"I16", "I32", "I64"}
-    float_types = {"DOUBLE"}
-    boolean_types = {"BOOL"}
-    byte_types = {"BYTE", "BINARY"}
-
-    ttype = attr.ib()
-
-    def format_arg_for_thrift(self, raw_arg, _):
-        if self.ttype in self.int_types:
-            return int(raw_arg)
-        elif self.ttype in self.float_types:
-            return float(raw_arg)
-        return raw_arg
+class TBool(ThriftType):
+    ttype = "bool"
 
     def validate_arg(self, raw_arg):
-        pass
+        if isinstance(raw_arg, bool):
+            return None
+        else:
+            return "Provided argument is not boolean"
+
+
+def _numeric_validation(
+    raw_arg, python_type, thrift_type_description, min_value, max_value
+):
+    if isinstance(raw_arg, python_type):
+        if raw_arg > max_value:
+            return "'{}' is too large to be a '{}'".format(
+                raw_arg, thrift_type_description
+            )
+        elif raw_arg < min_value:
+            return "'{}' is too small to be a '{}'".format(
+                raw_arg, thrift_type_description
+            )
+        else:
+            return None
+    else:
+        return "Provided argument is not an integer"
+
+
+@attr.s(frozen=True)
+class TByte(ThriftType):
+    ttype = "byte"
+
+    def validate_arg(self, raw_arg):
+        return _numeric_validation(raw_arg, int, "byte", -128, 127)
+
+
+@attr.s(frozen=True)
+class TI16(ThriftType):
+    ttype = "i16"
+
+    def validate_arg(self, raw_arg):
+        return _numeric_validation(raw_arg, int, "16 bit integer", -32768, 32767)
+
+
+@attr.s(frozen=True)
+class TI32(ThriftType):
+    ttype = "i32"
+
+    def validate_arg(self, raw_arg):
+        return _numeric_validation(
+            raw_arg, int, "32 bit integer", -2147483248, 2147483647
+        )
+
+
+@attr.s(frozen=True)
+class TI64(ThriftType):
+    ttype = "i64"
+
+    def validate_arg(self, raw_arg):
+        return _numeric_validation(
+            raw_arg, int, "32 bit integer", -9223372036854775808, 9223372036854775807
+        )
+
+
+@attr.s(frozen=True)
+class TDouble(ThriftType):
+    ttype = "double"
+
+    def validate_arg(self, raw_arg):
+        if isinstance(raw_arg, int):
+            # its valid to send an int for a double
+            raw_arg = float(raw_arg)
+        return _numeric_validation(
+            raw_arg, float, "32 bit integer", -9223372036854775808, 9223372036854775807
+        )
+
+
+@attr.s(frozen=True)
+class TBinary(ThriftType):
+    ttype = "binary"
+
+    def validate_arg(self, raw_arg):
+        if isinstance(raw_arg, bytes):
+            return None
+        else:
+            return "Provided argument is not a string"
+
+
+@attr.s(frozen=True)
+class TString(ThriftType):
+    ttype = "string"
+
+    def validate_arg(self, raw_arg):
+        if isinstance(raw_arg, str):
+            return None
+        else:
+            return "Provided argument is not a string"
