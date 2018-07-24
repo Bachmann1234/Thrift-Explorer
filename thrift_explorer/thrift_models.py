@@ -248,7 +248,7 @@ class TEnum(ThriftType):
         if self.names_to_values.get(raw_arg) or self.values_to_names.get(raw_arg):
             return None
         else:
-            return "provided value '{}' not in enum '{}'".format(raw_arg, self.name)
+            return "Provided value '{}' is not in enum '{}'".format(raw_arg, self.name)
 
 
 @attr.s(frozen=True)
@@ -259,7 +259,7 @@ class TBool(ThriftType):
         if isinstance(raw_arg, bool):
             return None
         else:
-            return "Provided argument is not boolean"
+            return "Provided argument is not a boolean"
 
 
 def _numeric_validation(
@@ -267,13 +267,9 @@ def _numeric_validation(
 ):
     if isinstance(raw_arg, python_type):
         if raw_arg > max_value:
-            return "'{}' is too large to be a '{}'".format(
-                raw_arg, thrift_type_description
-            )
+            return "{} is too large to be a {}".format(raw_arg, thrift_type_description)
         elif raw_arg < min_value:
-            return "'{}' is too small to be a '{}'".format(
-                raw_arg, thrift_type_description
-            )
+            return "{} is too small to be a {}".format(raw_arg, thrift_type_description)
         else:
             return None
     else:
@@ -306,7 +302,7 @@ class TI16(ThriftType):
 
 @attr.s(frozen=True)
 class TI32(ThriftType):
-    MIN_VALUE = -2147483248
+    MIN_VALUE = -2147483648
     MAX_VALUE = 2147483647
     ttype = "i32"
 
@@ -324,7 +320,7 @@ class TI64(ThriftType):
 
     def validate_arg(self, raw_arg):
         return _numeric_validation(
-            raw_arg, int, "32 bit integer", TI64.MIN_VALUE, TI64.MAX_VALUE
+            raw_arg, int, "64 bit integer", TI64.MIN_VALUE, TI64.MAX_VALUE
         )
 
 
