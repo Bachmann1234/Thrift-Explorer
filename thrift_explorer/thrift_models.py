@@ -4,6 +4,14 @@ from abc import ABC, abstractmethod
 import attr
 
 
+def _validate_basic_type(expected_type, raw_value):
+    if isinstance(raw_value, expected_type):
+        return None
+    return "Expected {0} but got {1}".format(
+        expected_type.__name__, type(raw_value).__name__
+    )
+
+
 class ThriftType(ABC):
     def format_arg_for_thrift(self, raw_arg, thrift_module):
         return raw_arg
@@ -115,17 +123,18 @@ class TStruct(ThriftType):
             except KeyError:
                 if field.required:
                     errors.append("Required Value {} missing".format(field.name))
+        return errors if errors else None
 
 
 def _validate_collection(collection_class, raw_arg, value_type):
     errors = []
     if not isinstance(raw_arg, collection_class):
-        return "Provided Value is not a set"
+        return "({0}) is not a {1}".format(raw_arg, collection_class.__name__)
     for value in raw_arg:
         error = value_type.validate_arg(value)
         if error:
             errors.append(error)
-    return errors
+    return errors if errors else None
 
 
 @attr.s(frozen=True)
@@ -195,17 +204,23 @@ class TMap(ThriftType):
         }
 
     def validate_arg(self, raw_arg):
-        if not isinstance(raw_arg, map):
+        if not isinstance(raw_arg, dict):
             return "Provided Value is not a map"
         errors = []
         for key, value in raw_arg.items():
             key_validation = self.key_type.validate_arg(key)
             value_validation = self.value_type.validate_arg(value)
             if key_validation:
-                errors.append("Key in map invalid: '{}'".format(key_validation))
-            if key_validation:
-                errors.append("value in map invalid: '{}'".format(value_validation))
-        return errors
+                errors.append(
+                    "Key '{0}' in map invalid: '{1}'".format(key, key_validation)
+                )
+            if value_validation:
+                errors.append(
+                    "Value for key '{0}' in map invalid: '{1}'".format(
+                        key, value_validation
+                    )
+                )
+        return errors if errors else None
 
 
 @attr.s(frozen=True)
@@ -248,7 +263,7 @@ class TEnum(ThriftType):
         if self.names_to_values.get(raw_arg) or self.values_to_names.get(raw_arg):
             return None
         else:
-            return "Provided value '{}' is not in enum '{}'".format(raw_arg, self.name)
+            return "Value is not in enum '{}'".format(self.name)
 
 
 @attr.s(frozen=True)
@@ -256,24 +271,22 @@ class TBool(ThriftType):
     ttype = "bool"
 
     def validate_arg(self, raw_arg):
-        if isinstance(raw_arg, bool):
-            return None
-        else:
-            return "Provided argument is not a boolean"
+        return _validate_basic_type(bool, raw_arg)
 
 
 def _numeric_validation(
     raw_arg, python_type, thrift_type_description, min_value, max_value
 ):
-    if isinstance(raw_arg, python_type):
+    error = _validate_basic_type(int, raw_arg)
+    if error:
+        return error
+    else:
         if raw_arg > max_value:
-            return "{} is too large to be a {}".format(raw_arg, thrift_type_description)
+            return "Value is too large to be a {}".format(thrift_type_description)
         elif raw_arg < min_value:
-            return "{} is too small to be a {}".format(raw_arg, thrift_type_description)
+            return "Value is too small to be a {}".format(thrift_type_description)
         else:
             return None
-    else:
-        return "Provided argument is not an integer"
 
 
 @attr.s(frozen=True)
@@ -335,11 +348,9 @@ class TDouble(ThriftType):
     MIN_VALUE = sys.float_info.max
 
     def validate_arg(self, raw_arg):
-        if isinstance(raw_arg, float):
-            # its valid to send an i`\nt for a double
+        if isinstance(raw_arg, int):
             return None
-        else:
-            return "Provided argument is not a float"
+        return _validate_basic_type(float, raw_arg)
 
 
 @attr.s(frozen=True)
@@ -347,10 +358,7 @@ class TBinary(ThriftType):
     ttype = "binary"
 
     def validate_arg(self, raw_arg):
-        if isinstance(raw_arg, bytes):
-            return None
-        else:
-            return "Provided argument is not binary data"
+        return _validate_basic_type(bytes, raw_arg)
 
 
 @attr.s(frozen=True)
@@ -358,7 +366,4 @@ class TString(ThriftType):
     ttype = "string"
 
     def validate_arg(self, raw_arg):
-        if isinstance(raw_arg, str):
-            return None
-        else:
-            return "Provided argument is not a string"
+        return _validate_basic_type(str, raw_arg)
