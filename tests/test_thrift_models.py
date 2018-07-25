@@ -147,6 +147,7 @@ def test_valid_map():
 
 def test_invalid_map():
     tmap = TMap(key_type=TI32(), value_type=TString())
+    assert tmap.validate_arg(4) == ["Expected dict but got int"]
     assert tmap.validate_arg({3: 4, 5: 2}) == [
         "Value for key '3' in map invalid: 'Expected str but got int'",
         "Value for key '5' in map invalid: 'Expected str but got int'",

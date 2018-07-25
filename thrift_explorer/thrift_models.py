@@ -208,8 +208,9 @@ class TMap(ThriftType):
         }
 
     def validate_arg(self, raw_arg):
-        if not isinstance(raw_arg, dict):
-            return "Provided Value is not a map"
+        errors = _validate_basic_type(dict, raw_arg)
+        if errors:
+            return [errors]
         errors = []
         for key, value in raw_arg.items():
             key_validation = self.key_type.validate_arg(key)
