@@ -9,7 +9,7 @@ install:
   - pip install pipenv coveralls 
   - pipenv install --dev --three
 script:
-  - pipenv run python -m pytest --cov=thrift_explorer/ tests
+  - pipenv run python -m pytest --cov-config .coveragerc --cov=thrift_explorer/ tests
 after_success:
   - coveralls
 notifications:
