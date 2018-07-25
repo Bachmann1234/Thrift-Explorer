@@ -9,7 +9,9 @@ from thrift_explorer.thrift_models import (
     TByte,
     TDouble,
     TEnum,
+    TList,
     TMap,
+    TSet,
     TString,
 )
 
@@ -152,4 +154,34 @@ def test_invalid_map():
     assert tmap.validate_arg({"3": 4, 5: "2"}) == [
         "Key '3' in map invalid: 'Expected int but got str'",
         "Value for key '3' in map invalid: 'Expected str but got int'",
+    ]
+
+
+def test_valid_list():
+    assert TList(value_type=TString()).validate_arg(["1", "2", "3"]) is None
+    assert TList(value_type=TString()).validate_arg([]) is None
+    assert (
+        TList(value_type=TList(value_type=TI32())).validate_arg([[1, 2], [4, 4]])
+        is None
+    )
+
+
+def test_invalid_list():
+    assert TList(value_type=TString()).validate_arg(set()) == [
+        "Expected list but got set"
+    ]
+    assert TList(value_type=TString()).validate_arg([4]) == [
+        "Index 0: Expected str but got int"
+    ]
+
+
+def test_valid_set():
+    assert TSet(value_type=TString()).validate_arg({"1", "2", "3"}) is None
+    assert TSet(value_type=TString()).validate_arg(set()) is None
+
+
+def test_invalid_set():
+    assert TSet(value_type=TString()).validate_arg([]) == ["Expected set but got list"]
+    assert TSet(value_type=TString()).validate_arg({4}) == [
+        "Invalid value in set: Expected str but got int"
     ]

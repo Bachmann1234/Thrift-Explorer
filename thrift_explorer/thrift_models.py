@@ -127,13 +127,17 @@ class TStruct(ThriftType):
 
 
 def _validate_collection(collection_class, raw_arg, value_type):
+    errors = _validate_basic_type(collection_class, raw_arg)
+    if errors:
+        return [errors]
     errors = []
-    if not isinstance(raw_arg, collection_class):
-        return "({0}) is not a {1}".format(raw_arg, collection_class.__name__)
-    for value in raw_arg:
+    for index, value in enumerate(raw_arg):
         error = value_type.validate_arg(value)
         if error:
-            errors.append(error)
+            if collection_class == set:
+                errors.append("Invalid value in set: {0}".format(error))
+            else:
+                errors.append("Index {0}: {1}".format(index, error))
     return errors if errors else None
 
 
