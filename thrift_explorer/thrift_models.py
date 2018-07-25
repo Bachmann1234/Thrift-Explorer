@@ -18,7 +18,7 @@ class ThriftType(ABC):
 
     @abstractmethod
     def validate_arg(self, raw_arg):
-        return NotImplementedError("Class must define a validation method")
+        return NotImplementedError
 
 
 @attr.s(frozen=True)
