@@ -106,9 +106,9 @@ class TStruct(ThriftType):
 
     def validate_arg(self, raw_arg):
         if not isinstance(raw_arg, dict):
-            return "Structs expect a dictionary to be passed in. I got '{}'".format(
-                raw_arg
-            )
+            return [
+                "Structs expect a dictionary but got {0}".format(type(raw_arg).__name__)
+            ]
         errors = []
         for field in self.fields:
             try:
@@ -122,7 +122,7 @@ class TStruct(ThriftType):
                     )
             except KeyError:
                 if field.required:
-                    errors.append("Required Value {} missing".format(field.name))
+                    errors.append("Required field '{}' missing".format(field.name))
         return errors if errors else None
 
 
@@ -147,7 +147,6 @@ class TList(ThriftType):
     Spec for a list or a set type
     value_type: ThriftType
         Specification for the type the collection contains
-    ttype: the type, (always 'set' or 'list')
     """
 
     value_type = attr.ib()
@@ -168,7 +167,6 @@ class TSet(ThriftType):
     Spec for a list or a set type
     value_type: ThriftType
         Specification for the type the collection contains
-    ttype: the type, (always 'set' or 'list')
     """
 
     value_type = attr.ib()

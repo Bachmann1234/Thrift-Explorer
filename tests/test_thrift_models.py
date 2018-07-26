@@ -9,10 +9,12 @@ from thrift_explorer.thrift_models import (
     TByte,
     TDouble,
     TEnum,
+    ThriftSpec,
     TList,
     TMap,
     TSet,
     TString,
+    TStruct,
 )
 
 
@@ -23,6 +25,19 @@ def animal_enum():
         name="Animals",
         names_to_values=names_to_values,
         values_to_names={value: key for key, value in names_to_values.items()},
+    )
+
+
+@pytest.fixture
+def superhero_struct():
+    return TStruct(
+        name="super_hero",
+        fields=[
+            ThriftSpec(name="name", type_info=TString(), required=True),
+            ThriftSpec(
+                name="villains", type_info=TList(value_type=TString()), required=False
+            ),
+        ],
     )
 
 
@@ -185,4 +200,43 @@ def test_invalid_set():
     assert TSet(value_type=TString()).validate_arg([]) == ["Expected set but got list"]
     assert TSet(value_type=TString()).validate_arg({4}) == [
         "Invalid value in set: Expected str but got int"
+    ]
+
+
+def test_invalid_struct_wrong_type(superhero_struct):
+    assert superhero_struct.validate_arg([]) == [
+        "Structs expect a dictionary but got list"
+    ]
+
+
+def test_invalid_struct_missing_field(superhero_struct):
+    assert superhero_struct.validate_arg(
+        {"villains": ["Joker", "Bane", "Riddler", "Clayface", "Two-Face"]}
+    ) == ["Required field 'name' missing"]
+
+
+def test_invalid_struct_invalid_field(superhero_struct):
+    assert superhero_struct.validate_arg(
+        {"name": 8, "villains": ["Joker", "Bane", "Riddler", "Clayface", "Two-Face"]}
+    ) == ["Error with field 'name': 'Expected str but got int'"]
+
+
+def test_valid_struct(superhero_struct):
+    assert (
+        superhero_struct.validate_arg(
+            {
+                "name": "batman",
+                "villains": ["Joker", "Bane", "Riddler", "Clayface", "Two-Face"],
+            }
+        )
+        is None
+    )
+
+
+def test_multiple_errors(superhero_struct):
+    assert superhero_struct.validate_arg(
+        {"villains": ["Joker", 8, "Riddler", "Clayface", "Two-Face"]}
+    ) == [
+        "Required field 'name' missing",
+        "Error with field 'villains': '['Index 1: Expected str but got int']'",
     ]
