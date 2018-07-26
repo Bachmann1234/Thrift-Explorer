@@ -96,7 +96,7 @@ class ErrorCode(Enum):
     SERVICE_NOT_IN_THRIFT = auto()
     ENDPOINT_NOT_IN_SERVICE = auto()
     REQUIRED_FIELD_MISSING = auto()
-    TYPE_MISMATCH = auto()
+    FIELD_VALIDATION_ERROR = auto()
 
 
 @attr.s(frozen=True)

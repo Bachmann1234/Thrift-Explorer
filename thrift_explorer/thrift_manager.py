@@ -188,7 +188,7 @@ class ThriftManager(object):
                     validation_errors.append(
                         FieldError(
                             arg_spec=arg_spec,
-                            code=ErrorCode.TYPE_MISMATCH,
+                            code=ErrorCode.FIELD_VALIDATION_ERROR,
                             message=error,
                         )
                     )
