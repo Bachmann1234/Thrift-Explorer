@@ -1,6 +1,7 @@
 import datetime
 import glob
 import os
+from collections import defaultdict
 
 import thriftpy
 from thriftpy.protocol import (
@@ -72,6 +73,7 @@ def translate_request_body(endpoint, request_body, thrift_module):
 
 
 def translate_thrift_response(response):
+    # Consider just dumping into json with the TJSONProtocol
     if not response:
         return response
     elif isinstance(response, (list,)):
@@ -140,6 +142,13 @@ class ThriftManager(object):
         self.thrift_directory = thrift_directory
         self._thrifts = _load_thrifts(self.thrift_directory)
         self.service_specs = parse_service_specs(self._thrifts)
+
+    def list_thrift_services(self):
+        results = defaultdict(list)
+        for key in self.service_specs.keys():
+            for service in self.service_specs[key]:
+                results[key].append(service)
+        return results
 
     def validate_request(self, thrift_request):
         try:

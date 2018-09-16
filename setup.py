@@ -6,7 +6,7 @@ import os
 import sys
 from shutil import rmtree
 
-from setuptools import find_packages, setup, Command
+from setuptools import Command, find_packages, setup
 
 # Package meta-data.
 NAME = "thriftexplorer"
@@ -21,7 +21,7 @@ VERSION = .1
 REQUIRED = ["thriftpy", "attrs"]
 
 # What packages are optional?
-EXTRAS = {}
+EXTRAS = {"server": "flask"}
 
 # The rest you shouldn't have to touch too much :)
 # ------------------------------------------------

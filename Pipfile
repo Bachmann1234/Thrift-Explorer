@@ -7,6 +7,7 @@ name = "pypi"
 cython = "*"
 thriftpy = "*"
 attrs = "*"
+flask = "*"
 
 [dev-packages]
 black = "*"

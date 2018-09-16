@@ -160,3 +160,10 @@ def test_request_body_has_invalid_data(example_thrift_manager):
             message="Expected str but got list",
         )
     ] == example_thrift_manager.validate_request(request)
+
+
+def test_list_thrift_services(example_thrift_manager):
+    assert {
+        "Batman.thrift": ["BatPuter"],
+        "todo.thrift": ["TodoService"],
+    } == example_thrift_manager.list_thrift_services()
