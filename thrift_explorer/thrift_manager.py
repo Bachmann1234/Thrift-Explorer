@@ -150,15 +150,21 @@ class ThriftManager(object):
                 results[key].append(service)
         return results
 
+    def thrift_loaded(self, thrift):
+        return thrift in self.service_specs
+
+    def service_in_thrift(self, thrift, service):
+        return self.thrift_loaded(thrift) and service in self.service_specs[thrift]
+
+    def method_in_service(self, thrift, service, method):
+        return (
+            self.service_in_thrift(thrift, service)
+            and method in self.service_specs[thrift][service].endpoints
+        )
+
     def list_methods(self, thrift, service):
-        try:
-            loaded_thrift = self.service_specs[thrift]
-        except KeyError:
-            raise KeyError("Thrift '{}' not found".format(thrift))
-        try:
-            loaded_service = loaded_thrift[service]
-        except KeyError:
-            raise KeyError("Service '{}' not found".format(service))
+        loaded_thrift = self.service_specs[thrift]
+        loaded_service = loaded_thrift[service]
         return [key for key in loaded_service.endpoints.keys()]
 
     def validate_request(self, thrift_request):

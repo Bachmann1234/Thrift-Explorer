@@ -22,22 +22,39 @@ def create_app(test_config=None):
 
     thrift_manager = ThriftManager(app.config["THRIFT_DIRECTORY"])
 
+    def _add_extension_if_needed(thrift):
+        if not thrift.endswith(".thrift"):
+            thrift = "{}.thrift".format(thrift)
+        return thrift
+
+    def _validate_args(thrift, service, method=None):
+        if not thrift_manager.thrift_loaded(thrift):
+            return "Thrift '{}' not found".format(thrift), 404
+        if not thrift_manager.service_in_thrift(thrift, service):
+            return "Service '{}' not found".format(service), 404
+        if method and not thrift_manager.method_in_service(thrift, service, method):
+            return "Method '{}' not found".format(method), 404
+        return None
+
     @app.route("/", methods=["GET"])
     def list_services():
         return json.dumps({"thrifts": thrift_manager.list_thrift_services()})
 
     @app.route("/<thrift>/<service>", methods=["GET"])
     def get_service_info(thrift, service):
-        if not thrift.endswith(".thrift"):
-            thrift = "{}.thrift".format(thrift)
-        try:
-            methods = thrift_manager.list_methods(thrift, service)
-        except KeyError as e:
-            return e.args[0], 404
+        thrift = _add_extension_if_needed(thrift)
+        error = _validate_args(thrift, service)
+        if error:
+            return error
+        methods = thrift_manager.list_methods(thrift, service)
         return json.dumps({"thrift": thrift, "service": service, "methods": methods})
 
     @app.route("/<thrift>/<service>/<method>", methods=["GET", "POST"])
     def service_method(thrift, service, method):
+        thrift = _add_extension_if_needed(thrift)
+        error = _validate_args(thrift, service, method)
+        if error:
+            return error
         if request.method == "POST":
             return "I ran a service command"
         else:

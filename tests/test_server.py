@@ -41,3 +41,15 @@ def test_get_service_info_invalid_service(client):
     response = client.get("/Batman/NotAService")
     assert response.status == "404 NOT FOUND"
     assert response.data == b"Service 'NotAService' not found"
+
+
+def test_service_method_invalid_thrift(client):
+    response = client.get("/notAThrift/BatPuter/getVillain")
+    assert response.status == "404 NOT FOUND"
+    assert response.data == b"Thrift 'notAThrift.thrift' not found"
+
+
+def test_service_method_info_invalid_method(client):
+    response = client.get("/Batman/BatPuter/notAMethod")
+    assert response.status == "404 NOT FOUND"
+    assert response.data == b"Method 'notAMethod' not found"
