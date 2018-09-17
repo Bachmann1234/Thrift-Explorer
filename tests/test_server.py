@@ -12,6 +12,7 @@ def client(example_thrift_directory):
 
 def test_list_services(client):
     response = client.get("/")
+    assert response.status == "200 OK"
     assert (
         response.data
         == b'{"thrifts": {"Batman.thrift": ["BatPuter"], "todo.thrift": ["TodoService"]}}'
@@ -20,6 +21,7 @@ def test_list_services(client):
 
 def test_get_service_info(client):
     response = client.get("/Batman/BatPuter")
+    assert response.status == "200 OK"
     assert (
         response.data
         == b'{"thrift": "Batman.thrift", "service": "BatPuter", "methods": ["ping", "getVillain", "addVillain", "saveCase"]}'
@@ -53,3 +55,15 @@ def test_service_method_info_invalid_method(client):
     response = client.get("/Batman/BatPuter/notAMethod")
     assert response.status == "404 NOT FOUND"
     assert response.data == b"Method 'notAMethod' not found"
+
+
+def test_get_thrift_definition_invalid_thrift(client):
+    response = client.get("/notAThrift")
+    assert response.status == "404 NOT FOUND"
+    assert response.data == b"Thrift 'notAThrift.thrift' not found"
+
+
+def test_get_thrift_definition(client, batman_thrift_text):
+    response = client.get("/Batman")
+    assert response.status == "200 OK"
+    assert response.data == batman_thrift_text.encode("utf-8")

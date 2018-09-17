@@ -24,11 +24,13 @@ from thrift_explorer.thrift_parser import parse_service_specs
 
 def _load_thrifts(thrift_directory):
     thrifts = {}
+    thrift_paths = {}
     search_path = os.path.join(thrift_directory, "**/*thrift")
     for thrift_path in glob.iglob(search_path, recursive=True):
         thrift_filename = os.path.basename(thrift_path)
         thrifts[thrift_filename] = thriftpy.load(thrift_path)
-    return thrifts
+        thrift_paths[thrift_filename] = thrift_path
+    return thrifts, thrift_paths
 
 
 def _find_protocol_factory(protocol):
@@ -140,7 +142,7 @@ def _make_client_call(
 class ThriftManager(object):
     def __init__(self, thrift_directory):
         self.thrift_directory = thrift_directory
-        self._thrifts = _load_thrifts(self.thrift_directory)
+        self._thrifts, self.thrift_paths = _load_thrifts(self.thrift_directory)
         self.service_specs = parse_service_specs(self._thrifts)
 
     def list_thrift_services(self):
@@ -166,6 +168,10 @@ class ThriftManager(object):
         loaded_thrift = self.service_specs[thrift]
         loaded_service = loaded_thrift[service]
         return [key for key in loaded_service.endpoints.keys()]
+
+    def thrift_definition(self, thrift):
+        with open(self.thrift_paths[thrift]) as infile:
+            return infile.read()
 
     def validate_request(self, thrift_request):
         try:

@@ -191,3 +191,9 @@ def test_method_in_service(example_thrift_manager):
     assert not example_thrift_manager.method_in_service(
         "Batman.thrift", "Billy", "pong"
     )
+
+
+def test_thrift_definition(example_thrift_manager, batman_thrift_text):
+    assert batman_thrift_text == example_thrift_manager.thrift_definition(
+        "Batman.thrift"
+    )
