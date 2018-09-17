@@ -27,8 +27,14 @@ def create_app(test_config=None):
         return json.dumps({"thrifts": thrift_manager.list_thrift_services()})
 
     @app.route("/<thrift>/<service>", methods=["GET"])
-    def get_service_info():
-        return "Here is some service info"
+    def get_service_info(thrift, service):
+        if not thrift.endswith(".thrift"):
+            thrift = "{}.thrift".format(thrift)
+        try:
+            methods = thrift_manager.list_methods(thrift, service)
+        except KeyError as e:
+            return e.args[0], 404
+        return json.dumps({"thrift": thrift, "service": service, "methods": methods})
 
     @app.route("/<thrift>/<service>/<method>", methods=["GET", "POST"])
     def service_method(thrift, service, method):

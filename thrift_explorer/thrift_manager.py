@@ -150,6 +150,17 @@ class ThriftManager(object):
                 results[key].append(service)
         return results
 
+    def list_methods(self, thrift, service):
+        try:
+            loaded_thrift = self.service_specs[thrift]
+        except KeyError:
+            raise KeyError("Thrift '{}' not found".format(thrift))
+        try:
+            loaded_service = loaded_thrift[service]
+        except KeyError:
+            raise KeyError("Service '{}' not found".format(service))
+        return [key for key in loaded_service.endpoints.keys()]
+
     def validate_request(self, thrift_request):
         try:
             thrift_spec = self.service_specs[thrift_request.thrift_file]
