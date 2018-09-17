@@ -10,6 +10,13 @@ def create_app(test_config=None):
     app = Flask(__name__)
     if test_config is None:
         app.config["THRIFT_DIRECTORY"] = os.environ["THRIFT_DIRECTORY"]
+        app.config["DEFAULT_TRANSPORT"] = os.environ["THRIFT_DIRECTORY"]
+        app.config["DEFAULT_PROTOCOL"] = os.environ.get(
+            "DEFAULT_THRIFT_PROTOCOL", "TBinaryProtocol"
+        )
+        app.config["DEFAULT_TRANSPORT"] = os.environ.get(
+            "DEFAULT_THRIFT_TRANSPORT", "TBufferedTransport"
+        )
     else:
         app.config.from_mapping(test_config)
 
