@@ -136,7 +136,7 @@ def _make_client_call(
         status=status,
         request=thrift_request,
         data=response_body,
-        time_to_make_reqeust=datetime.datetime.now() - time_before_request,
+        time_to_make_request=datetime.datetime.now() - time_before_request,
         time_to_connect=time_after_client,
     )
 
@@ -154,17 +154,22 @@ class ThriftManager(object):
                 results[key].append(service)
         return results
 
-    def thrift_loaded(self, thrift):
-        return thrift in self.service_specs
+    def get_thrift(self, thrift):
+        return self.service_specs.get(thrift)
 
-    def service_in_thrift(self, thrift, service):
-        return self.thrift_loaded(thrift) and service in self.service_specs[thrift]
+    def get_service(self, thrift_name, service_name):
+        service = None
+        thrift_spec = self.get_thrift(thrift_name)
+        if thrift_spec:
+            service = self.service_specs[thrift_name].get(service_name)
+        return service
 
-    def method_in_service(self, thrift, service, method):
-        return (
-            self.service_in_thrift(thrift, service)
-            and method in self.service_specs[thrift][service].endpoints
-        )
+    def get_method(self, thrift_name, service_name, method_name):
+        method = None
+        service = self.get_service(thrift_name, service_name)
+        if service:
+            method = service.endpoints.get(method_name)
+        return method
 
     def list_methods(self, thrift, service):
         loaded_thrift = self.service_specs[thrift]
@@ -273,6 +278,6 @@ class ThriftManager(object):
                 status=status,
                 request=thrift_request,
                 data=response,
-                time_to_make_reqeust=None,
+                time_to_make_request=None,
                 time_to_connect=None,
             )

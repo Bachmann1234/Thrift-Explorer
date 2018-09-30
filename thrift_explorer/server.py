@@ -28,11 +28,11 @@ def create_app(test_config=None):
         return thrift
 
     def _validate_args(thrift, service=None, method=None):
-        if not thrift_manager.thrift_loaded(thrift):
+        if not thrift_manager.get_thrift(thrift):
             return "Thrift '{}' not found".format(thrift), 404
-        if service and not thrift_manager.service_in_thrift(thrift, service):
+        if service and not thrift_manager.get_service(thrift, service):
             return "Service '{}' not found".format(service), 404
-        if method and not thrift_manager.method_in_service(thrift, service, method):
+        if method and not thrift_manager.get_method(thrift, service, method):
             return "Method '{}' not found".format(method), 404
         return None
 
@@ -61,20 +61,43 @@ def create_app(test_config=None):
     def service_method(thrift, service, method):
         thrift = _add_extension_if_needed(thrift)
         error = _validate_args(thrift, service, method)
+        method = thrift_manager.get_method(thrift, service, method)
         if error:
             return error
         if request.method == "POST":
-            return "I ran a service command"
-        else:
-            return ThriftRequest(
+            request_json = request.get_json(force=True)
+            # todo validate
+            thrift_request = ThriftRequest(
                 thrift_file=thrift,
                 service_name=service,
-                endpoint_name=method,
-                host="<hostname>",
-                port=9090,
-                protocol=app.config["DEFAULT_PROTOCOL"],
-                transport=app.config["DEFAULT_TRANSPORT"],
-                request_body={},
-            ).to_json()
+                endpoint_name=method.name,
+                host=request_json["host"],
+                port=request_json["port"],
+                protocol=request_json.get("protocol", app.config["DEFAULT_PROTOCOL"]),
+                transport=request_json.get(
+                    "transport", app.config["DEFAULT_TRANSPORT"]
+                ),
+                request_body=request_json["request_body"],
+            )
+            errors = thrift_manager.validate_request(thrift_request)
+            if errors:
+                return json.dumps(errors.__dict__)
+            else:
+                return json.dumps(
+                    thrift_manager.make_request(thrift_request).to_jsonable_dict()
+                )
+        else:
+            return json.dumps(
+                ThriftRequest(
+                    thrift_file=thrift,
+                    service_name=service,
+                    endpoint_name=method.name,
+                    host="<hostname>",
+                    port=9090,
+                    protocol=app.config["DEFAULT_PROTOCOL"],
+                    transport=app.config["DEFAULT_TRANSPORT"],
+                    request_body={},
+                ).to_jsonable_dict()
+            )
 
     return app

@@ -169,28 +169,24 @@ def test_list_thrift_services(example_thrift_manager):
     } == example_thrift_manager.list_thrift_services()
 
 
-def test_thrift_loaded(example_thrift_manager):
-    assert example_thrift_manager.thrift_loaded("Batman.thrift")
-    assert not example_thrift_manager.thrift_loaded("Not.thrift")
+def test_get_thrift(example_thrift_manager):
+    assert "BatPuter" in example_thrift_manager.get_thrift("Batman.thrift")
+    assert not example_thrift_manager.get_thrift("Not.thrift")
 
 
-def test_service_in_thrift(example_thrift_manager):
-    assert example_thrift_manager.service_in_thrift("Batman.thrift", "BatPuter")
-    assert not example_thrift_manager.service_in_thrift("Not.thrift", "BatPuter")
-    assert not example_thrift_manager.service_in_thrift("Batman.thrift", "Billy")
+def test_get_service(example_thrift_manager):
+    service = example_thrift_manager.get_service("Batman.thrift", "BatPuter")
+    assert "BatPuter" == service.name
+    assert not example_thrift_manager.get_service("Not.thrift", "BatPuter")
+    assert not example_thrift_manager.get_service("Batman.thrift", "Billy")
 
 
-def test_method_in_service(example_thrift_manager):
-    assert example_thrift_manager.method_in_service("Batman.thrift", "BatPuter", "ping")
-    assert not example_thrift_manager.method_in_service(
-        "Not.thrift", "BatPuter", "ping"
-    )
-    assert not example_thrift_manager.method_in_service(
-        "Batman.thrift", "Billy", "ping"
-    )
-    assert not example_thrift_manager.method_in_service(
-        "Batman.thrift", "Billy", "pong"
-    )
+def test_get_method(example_thrift_manager):
+    method = example_thrift_manager.get_method("Batman.thrift", "BatPuter", "ping")
+    assert method.name == "ping"
+    assert not example_thrift_manager.get_method("Not.thrift", "BatPuter", "ping")
+    assert not example_thrift_manager.get_method("Batman.thrift", "Billy", "ping")
+    assert not example_thrift_manager.get_method("Batman.thrift", "Billy", "pong")
 
 
 def test_thrift_definition(example_thrift_manager, batman_thrift_text):

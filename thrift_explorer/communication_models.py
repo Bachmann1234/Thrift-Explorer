@@ -72,11 +72,11 @@ class ThriftRequest(object):
     transport = attr.ib(converter=Transport.from_string)
     request_body = attr.ib(default=attr.Factory(dict))
 
-    def to_json(self):
+    def to_jsonable_dict(self):
         to_dump = self.__dict__
         to_dump["protocol"] = self.protocol.value
         to_dump["transport"] = self.transport.value
-        return json.dumps(to_dump)
+        return to_dump
 
 
 @attr.s(frozen=True)
@@ -87,15 +87,22 @@ class ThriftResponse(object):
         status: String representing the type of response 'success' or some exception
         request: ThriftRequest used to make this response
         data: dict with the response data
-        time_to_make_reqeust: datetime.timedelta Time to make the request
+        time_to_make_request: datetime.timedelta Time to make the request
         time_to_connect: datetime.timedelta Time to make the initial connection
     """
 
     status = attr.ib()
     request = attr.ib()
     data = attr.ib()
-    time_to_make_reqeust = attr.ib()
+    time_to_make_request = attr.ib()
     time_to_connect = attr.ib()
+
+    def to_jsonable_dict(self):
+        to_dump = self.__dict__
+        to_dump["request"] = to_dump["request"].to_jsonable_dict()
+        to_dump["time_to_make_request"] = str(self.time_to_make_request)
+        to_dump["time_to_connect"] = str(self.time_to_connect)
+        return to_dump
 
 
 class ErrorCode(Enum):

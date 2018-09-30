@@ -34,7 +34,7 @@ def test_ping(todo_server, example_thrift_manager):
     assert response.request == request
     assert response.status == "Success"
     assert response.time_to_connect > datetime.timedelta()
-    assert response.time_to_make_reqeust > datetime.timedelta()
+    assert response.time_to_make_request > datetime.timedelta()
 
 
 def test_complete_task_found(
@@ -49,7 +49,7 @@ def test_complete_task_found(
     assert response.request == request
     assert response.status == "Success"
     assert response.time_to_connect > datetime.timedelta()
-    assert response.time_to_make_reqeust > datetime.timedelta()
+    assert response.time_to_make_request > datetime.timedelta()
     with pytest.raises(todo_thrift.Exceptions.NotFound):
         assert todo_client.getTask(task.taskId)
 
@@ -69,7 +69,7 @@ def test_create_task(todo_server, todo_client, todo_thrift, example_thrift_manag
     assert response.request == request
     assert response.status == "Success"
     assert response.time_to_connect > datetime.timedelta()
-    assert response.time_to_make_reqeust > datetime.timedelta()
+    assert response.time_to_make_request > datetime.timedelta()
 
 
 def test_get_task(todo_server, todo_client, example_thrift_manager):
@@ -86,7 +86,7 @@ def test_get_task(todo_server, todo_client, example_thrift_manager):
     assert response.request == request
     assert response.status == "Success"
     assert response.time_to_connect > datetime.timedelta()
-    assert response.time_to_make_reqeust > datetime.timedelta()
+    assert response.time_to_make_request > datetime.timedelta()
 
 
 def test_list_tasks(todo_server, todo_client, example_thrift_manager):
@@ -121,7 +121,7 @@ def test_list_tasks(todo_server, todo_client, example_thrift_manager):
     assert response.request == request
     assert response.status == "Success"
     assert response.time_to_connect > datetime.timedelta()
-    assert response.time_to_make_reqeust > datetime.timedelta()
+    assert response.time_to_make_request > datetime.timedelta()
 
 
 def test_count_tasks(todo_server, todo_client, example_thrift_manager):
@@ -143,7 +143,7 @@ def test_handle_exception(todo_server, example_thrift_manager):
     assert response.request == request
     assert response.status == "NotFound"
     assert response.time_to_connect > datetime.timedelta()
-    assert response.time_to_make_reqeust > datetime.timedelta()
+    assert response.time_to_make_request > datetime.timedelta()
 
 
 def test_handle_unimplemented_method(todo_server, example_thrift_manager):
@@ -157,7 +157,7 @@ def test_handle_unimplemented_method(todo_server, example_thrift_manager):
     assert response.request == request
     assert response.status == "ServerError"
     assert response.time_to_connect > datetime.timedelta()
-    assert response.time_to_make_reqeust > datetime.timedelta()
+    assert response.time_to_make_request > datetime.timedelta()
 
 
 def test_invalid_port(todo_server, example_thrift_manager):
@@ -171,4 +171,4 @@ def test_invalid_port(todo_server, example_thrift_manager):
     assert response.request == request
     assert response.status == "ConnectionError"
     assert response.time_to_connect is None
-    assert response.time_to_make_reqeust is None
+    assert response.time_to_make_request is None
