@@ -75,7 +75,9 @@ def translate_request_body(endpoint, request_body, thrift_module):
 
 
 def translate_thrift_response(response):
-    # Consider just dumping into json with the TJSONProtocol
+    # I considered just using TJSONProtocol. But once it became clear
+    # there was not a simple "just call this" method the result
+    # started getting as complicated as this.
     if not response:
         return response
     elif isinstance(response, (list,)):
