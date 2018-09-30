@@ -13,7 +13,124 @@ have access to without having to write or maintain any code. If the required thr
 Right now the primary method for doing this is the the flask server. However, i'm thinking the tools here could be used to make cli's/gui's. For now if I invest more time in this I will be spending it
 on refining the workflow that already exists rather than providing more workflows
 
-[Server Postman Collection](ThriftExplorer.postman_collection.json)
+## Example Usage
+
+Example calls are provided as part of a [Postman Collection](ThriftExplorer.postman_collection.json). However. Lets walk though a basic session,
+
+If you are working on a todo thrift service that you have running on your machine you can use thrift explorer to make calls to it. With the todo server running you 
+add the todo thrifts to thrift explorer and start the server. (I will be using [curl](https://curl.haxx.se/) to make requests and [jq](https://stedolan.github.io/jq/) to pretty print the responses)
+
+You can see what services are loaded
+
+```
+curl -Ss localhost:5000 | jq '.'                                                                                                                                                                     
+{
+  "thrifts": {
+    "Batman.thrift": [
+      "BatPuter"
+    ],
+    "todo.thrift": [
+      "TodoService"
+    ]
+  }
+}
+```
+
+List the methods of a particular service
+
+```
+curl -Ss localhost:5000/todo/TodoService/ | jq '.'                                                                                                                                                   
+{
+  "thrift": "todo.thrift",
+  "service": "TodoService",
+  "methods": [
+    "ping",
+    "listTasks",
+    "numTasks",
+    "getTask",
+    "createTask",
+    "completeTask",
+    "fancyNewMethod"
+  ]
+}
+```
+
+Make a call to one of the methods of that service (the response is in the "data" field of the response body)
+
+```
+curl -Ss -X POST \                                                                                                                                                                                   
+           http://localhost:5000/todo/TodoService/createTask/ \
+           -H 'Content-Type: application/json' \
+           -d '{
+             "host": "localhost",
+             "port": 6000,
+             "protocol": "tbinaryprotocol",
+             "transport": "tbufferedtransport",
+             "request_body": {"description": "task 1", "dueDate": "12-12-2012"}
+         }' | jq "."
+{
+  "status": "Success",
+  "request": {
+    "thrift_file": "todo.thrift",
+    "service_name": "TodoService",
+    "endpoint_name": "createTask",
+    "host": "localhost",
+    "port": 6000,
+    "protocol": "tbinaryprotocol",
+    "transport": "tbufferedtransport",
+    "request_body": {
+      "description": "task 1",
+      "dueDate": "12-12-2012"
+    }
+  },
+  "data": {
+    "__thrift_struct_class__": "Task",
+    "taskId": "1",
+    "description": "task 1",
+    "dueDate": "12-12-2012"
+  },
+  "time_to_make_request": "0:00:00.008794",
+  "time_to_connect": "0:00:00.001502"
+}
+```
+
+and just for fun we will make another call
+
+```
+curl -Ss -X POST \                                                                                                                                                                                   
+               http://localhost:5000/todo/TodoService/getTask/ \
+               -H 'Content-Type: application/json' \
+               -d '{
+                 "host": "localhost",
+                 "port": 6000,
+                 "protocol": "tbinaryprotocol",
+                 "transport": "tbufferedtransport",
+                 "request_body": {"taskId": "1"}
+             }' | jq "."
+{
+  "status": "Success",
+  "request": {
+    "thrift_file": "todo.thrift",
+    "service_name": "TodoService",
+    "endpoint_name": "getTask",
+    "host": "localhost",
+    "port": 6000,
+    "protocol": "tbinaryprotocol",
+    "transport": "tbufferedtransport",
+    "request_body": {
+      "taskId": "1"
+    }
+  },
+  "data": {
+    "__thrift_struct_class__": "Task",
+    "taskId": "1",
+    "description": "task 1",
+    "dueDate": "12-12-2012"
+  },
+  "time_to_make_request": "0:00:00.001283",
+  "time_to_connect": "0:00:00.000554"
+}
+```
 
 ## Running the flask server
 
