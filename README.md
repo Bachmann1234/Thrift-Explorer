@@ -8,11 +8,7 @@
 [Apache Thrift](https://thrift.apache.org/) is a language agnostic framework that enables typed communication between services. 
 
 Thrift explorer is intended to be a tool aimed at developers who use thrift services. Enabling the user to explore thrift services they
-have access to without having to write or maintain any code. If the required thrifts are loaded into Thrift Explorer you can go ahead
-and make requests.
-
-The goal of the project is to provide the simple pick up and play aspects of http apis. If the thrifts are loaded in here you can call your thrift services without generating
-a client or loading up an environment. Just make a curl call. I think it is most helpful when trying a service out for the first time or doing some basic testing of a service.
+have access to without having to write or maintain any code. If the required thrifts are loaded into Thrift Explorer developers are enabled to access thrift apis with the same toolset they use for HTTP apis.
 
 Right now the primary method for doing this is the the flask server. However, i'm thinking the tools here could be used to make cli's/gui's. For now if I invest more time in this I will be spending it
 on refining the workflow that already exists rather than providing more workflows
