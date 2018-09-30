@@ -15,7 +15,7 @@ on refining the workflow that already exists rather than providing more workflow
 
 ## Example Usage
 
-Example calls are provided as part of a [Postman Collection](ThriftExplorer.postman_collection.json). However. Lets walk though a basic session,
+Example calls are provided as part of a [Postman Collection](ThriftExplorer.postman_collection.json). However. Lets walk though a basic session.
 
 If you are working on a todo thrift service that you have running on your machine you can use thrift explorer to make calls to it. With the todo server running you 
 add the todo thrifts to thrift explorer and start the server. (I will be using [curl](https://curl.haxx.se/) to make requests and [jq](https://stedolan.github.io/jq/) to pretty print the responses)
@@ -129,6 +129,29 @@ curl -Ss -X POST \
   },
   "time_to_make_request": "0:00:00.001283",
   "time_to_connect": "0:00:00.000554"
+}
+```
+
+and if you just want to get the thrift itself you can do that to
+
+```
+curl -Ss localhost:5000/todo/
+include "basethrifts/Exceptions.thrift"
+
+struct Task {
+    1: optional string taskId;
+    2: optional string description;
+    3: optional string dueDate;
+}
+
+service TodoService {
+    void ping();
+    list<Task> listTasks();
+    i64 numTasks();
+    Task getTask(1: string taskId) throws (1: Exceptions.NotFound notfound);
+    Task createTask(1: string description, 2: string dueDate);
+    void completeTask(1: required string taskId) throws (1: Exceptions.NotFound notfound);
+    void fancyNewMethod(); // Not implemented by the server to simulate that kind of error
 }
 ```
 
