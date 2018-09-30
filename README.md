@@ -13,7 +13,7 @@ have access to without having to write or maintain any code. If the required thr
 Right now the primary method for doing this is the the flask server. However, i'm thinking the tools here could be used to make cli's/gui's. For now if I invest more time in this I will be spending it
 on refining the workflow that already exists rather than providing more workflows
 
-[Server Postman Collection](ThriftExplorer.postman_collection)
+[Server Postman Collection](ThriftExplorer.postman_collection.json)
 
 ## Running the flask server
 
