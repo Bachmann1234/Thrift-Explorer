@@ -5,16 +5,35 @@
 [![Coverage Status](https://coveralls.io/repos/github/Bachmann1234/thriftExplorer/badge.svg?branch=master)](https://coveralls.io/github/Bachmann1234/thriftExplorer?branch=master)
 [![PyPI version](https://badge.fury.io/py/thriftexplorer.svg)](https://badge.fury.io/py/thriftexplorer)
 
-This repo is not 100% sure what it wants to be. It is also not something that is ready to actually be used (does not even do anything yet). But let me walk you though my intentions
-
 [Apache Thrift](https://thrift.apache.org/) is a language agnostic framework that enables typed communication between services. 
 
-Working with thrifts and the thrift compiler is fairly easy. Write a thrift file, generate your server and implement your buisness logic as a "handler" that your server uses.
+Thrift explorer is intended to be a tool aimed at developers who use thrift services. Enabling the user to explore thrift services they
+have access to without having to write or maintain any code. If the required thrifts are loaded into Thrift Explorer you can go ahead
+and make requests.
 
-To communicate with a thrift based service simple use that same compiler to generate your thrift and you are off to the races.
+The goal of the project is to provide the simple pick up and play aspects of http apis. If the thrifts are loaded in here you can call your thrift services without generating
+a client or loading up an environment. Just make a curl call. I think it is most helpful when trying a service out for the first time or doing some basic testing of a service.
 
-I began writing this project because I wanted a quick and easy way to make thrift requests on the fly for when I am experimenting or debugging a thrift service. There are tools that allow you to do this but the ones I have played with felt cumbersome and made assumptions about your workflow (such as your protocol/transport choise).
+Right now the primary method for doing this is the the flask server. However, i'm thinking the tools here could be used to make cli's/gui's. For now if I invest more time in this I will be spending it
+on refining the workflow that already exists rather than providing more workflows
 
-I wanted to see if I could build something I liked better.
+[Server Postman Collection](ThriftExplorer.postman_collection)
 
-I plan to start with a CLI. I would consider this a sort of proof of concept. Ultimately I think working with thrifts this way is better suited to a gui tool. Even simple requests have a lot of arguments. 
+## Running the flask server
+
+The server requires one environment variable be set "THRIFT_DIRECTORY" this should point to a directory with all the thrift files you want the server to be able to access. Make sure all dependencies are included.
+
+In addition you can set DEFAULT_PROTOCOL (TBinaryProtocol if not defined) and DEFAULT_TRANSPORT (TBufferedTransport if not defined)
+
+One you have configured the server you can run the flask development server our use your favorite WIGI HTTP server to run the service
+
+## Running the example thrift server
+
+This repo contains some example thrifts and one example thrift service. See [Todo Thrift](/example-thrifts/todo.thrift) for a service definition.
+
+To run it just set your pythonpath appropriately (see [My environment](/environment.fish) for how I setup my environment (I use fish sell). Then run
+
+```
+python tests/todoserver/service.py
+```
+
