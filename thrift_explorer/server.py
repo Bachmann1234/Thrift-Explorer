@@ -66,7 +66,7 @@ def create_app(test_config=None):
             return error
         if request.method == "POST":
             request_json = request.get_json(force=True)
-            # todo validate
+            # todo validate post body
             thrift_request = ThriftRequest(
                 thrift_file=thrift,
                 service_name=service,

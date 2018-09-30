@@ -104,8 +104,18 @@ def test_service_method_get(flask_client):
 
 
 def test_service_method_post(todo_server, todo_client, flask_client):
-    todo_client.createTask("task 1", "12-12-2012")
-    todo_client.createTask("task 2", "12-12-2012")
+    response = flask_client.post(
+        "/todo/TodoService/createTask",
+        data=json.dumps(
+            {
+                "host": "127.0.0.1",
+                "port": 6000,
+                "request_body": {"description": "task 1", "dueDate": "12-12-2012"},
+            }
+        ),
+    )
+    assert response.status == "200 OK"
+
     response = flask_client.post(
         "/todo/TodoService/numTasks",
         data=json.dumps({"host": "127.0.0.1", "port": 6000, "request_body": {}}),
@@ -122,7 +132,7 @@ def test_service_method_post(todo_server, todo_client, flask_client):
             "transport": "tbufferedtransport",
             "request_body": {},
         },
-        "data": 2,
+        "data": 1,
     }
 
     actual = json.loads(response.data)
