@@ -81,4 +81,6 @@ def run_server(port):
 
 
 if __name__ == "__main__":
-    run_server(6000)
+    port = 6000
+    print(f"Running on {port}")
+    run_server(port)

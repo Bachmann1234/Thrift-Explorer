@@ -6,6 +6,9 @@ from flask import Flask, request
 from thrift_explorer.communication_models import ThriftRequest
 from thrift_explorer.thrift_manager import ThriftManager
 
+JSON_CONTENT_TYPE = {"Content-Type": "application/json; charset=utf-8"}
+TEXT_CONTENT_TYPE = {"Content-Type": "text/plain; charset=utf-8"}
+
 
 def create_app(test_config=None):
     app = Flask(__name__)
@@ -38,26 +41,34 @@ def create_app(test_config=None):
 
     @app.route("/", methods=["GET"])
     def list_services():
-        return json.dumps({"thrifts": thrift_manager.list_thrift_services()})
+        return (
+            json.dumps({"thrifts": thrift_manager.list_thrift_services()}),
+            200,
+            JSON_CONTENT_TYPE,
+        )
 
-    @app.route("/<thrift>", methods=["GET"])
+    @app.route("/<thrift>/", methods=["GET"])
     def get_thrift_definition(thrift):
         thrift = _add_extension_if_needed(thrift)
         error = _validate_args(thrift)
         if error:
             return error
-        return thrift_manager.thrift_definition(thrift)
+        return thrift_manager.thrift_definition(thrift), 200, TEXT_CONTENT_TYPE
 
-    @app.route("/<thrift>/<service>", methods=["GET"])
+    @app.route("/<thrift>/<service>/", methods=["GET"])
     def get_service_info(thrift, service):
         thrift = _add_extension_if_needed(thrift)
         error = _validate_args(thrift, service)
         if error:
             return error
         methods = thrift_manager.list_methods(thrift, service)
-        return json.dumps({"thrift": thrift, "service": service, "methods": methods})
+        return (
+            json.dumps({"thrift": thrift, "service": service, "methods": methods}),
+            200,
+            JSON_CONTENT_TYPE,
+        )
 
-    @app.route("/<thrift>/<service>/<method>", methods=["GET", "POST"])
+    @app.route("/<thrift>/<service>/<method>/", methods=["GET", "POST"])
     def service_method(thrift, service, method):
         thrift = _add_extension_if_needed(thrift)
         error = _validate_args(thrift, service, method)
@@ -83,21 +94,29 @@ def create_app(test_config=None):
             if errors:
                 return json.dumps(errors.__dict__)
             else:
-                return json.dumps(
-                    thrift_manager.make_request(thrift_request).to_jsonable_dict()
+                return (
+                    json.dumps(
+                        thrift_manager.make_request(thrift_request).to_jsonable_dict()
+                    ),
+                    200,
+                    JSON_CONTENT_TYPE,
                 )
         else:
-            return json.dumps(
-                ThriftRequest(
-                    thrift_file=thrift,
-                    service_name=service,
-                    endpoint_name=method.name,
-                    host="<hostname>",
-                    port=9090,
-                    protocol=app.config["DEFAULT_PROTOCOL"],
-                    transport=app.config["DEFAULT_TRANSPORT"],
-                    request_body={},
-                ).to_jsonable_dict()
+            return (
+                json.dumps(
+                    ThriftRequest(
+                        thrift_file=thrift,
+                        service_name=service,
+                        endpoint_name=method.name,
+                        host="<hostname>",
+                        port=9090,
+                        protocol=app.config["DEFAULT_PROTOCOL"],
+                        transport=app.config["DEFAULT_TRANSPORT"],
+                        request_body={},
+                    ).to_jsonable_dict()
+                ),
+                200,
+                JSON_CONTENT_TYPE,
             )
 
     return app

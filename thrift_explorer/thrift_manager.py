@@ -4,6 +4,7 @@ import os
 from collections import defaultdict
 
 import thriftpy
+from thriftpy import rpc as thriftpy_client
 from thriftpy.protocol import (
     TBinaryProtocolFactory,
     TCompactProtocolFactory,
@@ -254,7 +255,7 @@ class ThriftManager(object):
         ]
         time_before_client = datetime.datetime.now()
         try:
-            with thriftpy.rpc.client_context(
+            with thriftpy_client.client_context(
                 service=thriftpy_service,
                 host=thrift_request.host,
                 port=thrift_request.port,

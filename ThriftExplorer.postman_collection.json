@@ -1,0 +1,157 @@
+{
+	"info": {
+		"_postman_id": "baa4e1c5-424a-4289-a188-7e287b3fa288",
+		"name": "ThriftExplorer",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "List Thrifts",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"url": {
+					"raw": "localhost:5000/",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						""
+					]
+				},
+				"description": "Listing the thrifts loaded into the ThriftExplorer"
+			},
+			"response": []
+		},
+		{
+			"name": "Get the Todo Thrift",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"url": {
+					"raw": "localhost:5000/todo/",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"todo",
+						""
+					]
+				},
+				"description": "Grabbing a .thrift file that the server has"
+			},
+			"response": []
+		},
+		{
+			"name": "List Methods in 'TodoService'",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"url": {
+					"raw": "localhost:5000/todo/TodoService/",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"todo",
+						"TodoService",
+						""
+					]
+				},
+				"description": "Provides details about a specific service"
+			},
+			"response": []
+		},
+		{
+			"name": "Getting An Example Request to 'CreateTask'",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"url": {
+					"raw": "localhost:5000/todo/TodoService/createTask/",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"todo",
+						"TodoService",
+						"createTask",
+						""
+					]
+				},
+				"description": "A get reqeust to a method will respond with a basic template for how to make a request to this endpoint \n**This method still needs work** (provides too many parameters. Does not provide a helpful request body)"
+			},
+			"response": []
+		},
+		{
+			"name": "Creating a Task in the TodoService",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"host\": \"localhost\",\n    \"port\": 6000,\n    \"protocol\": \"tbinaryprotocol\",\n    \"transport\": \"tbufferedtransport\",\n    \"request_body\": {\"description\": \"task 1\", \"dueDate\": \"12-12-2012\"}\n}"
+				},
+				"url": {
+					"raw": "localhost:5000/todo/TodoService/createTask/",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"todo",
+						"TodoService",
+						"createTask",
+						""
+					]
+				},
+				"description": "Making a call to a service method"
+			},
+			"response": []
+		},
+		{
+			"name": "List Tasks",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"host\": \"localhost\",\n    \"port\": 6000,\n    \"protocol\": \"tbinaryprotocol\",\n    \"transport\": \"tbufferedtransport\",\n    \"request_body\": {}\n}"
+				},
+				"url": {
+					"raw": "localhost:5000/todo/TodoService/listTasks/",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"todo",
+						"TodoService",
+						"listTasks",
+						""
+					]
+				},
+				"description": "Making another call to a service method"
+			},
+			"response": []
+		}
+	]
+}
