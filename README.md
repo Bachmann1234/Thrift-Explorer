@@ -17,9 +17,13 @@ on refining the workflow that already exists rather than providing more workflow
 
 ## Running the flask server
 
-The server requires one environment variable be set "THRIFT_DIRECTORY" this should point to a directory with all the thrift files you want the server to be able to access. Make sure all dependencies are included.
+The service is configured via environment variables
 
-In addition you can set DEFAULT_PROTOCOL (TBinaryProtocol if not defined) and DEFAULT_TRANSPORT (TBufferedTransport if not defined)
+| Variable          | Description                                                                   | Default            | Requred |
+|-------------------|-------------------------------------------------------------------------------|--------------------|---------|
+| THRIFT_DIRECTORY  | The directory where the thrifts you want the server to be aware of are stored |                    | Yes     |
+| DEFAULT_PROTOCOL  | What thrift protocol should the server assume if one is not provided          | TBinaryProtocol    | No      |
+| DEFAULT_TRANSPORT | What thrift transport should the server assume if one is not provided         | TBufferedTransport | No      |
 
 One you have configured the server you can run the flask development server or use your favorite WIGI HTTP server to run the service
 
