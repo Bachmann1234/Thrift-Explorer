@@ -3,6 +3,7 @@ import os
 
 from flask import Flask, request
 
+from thrift_explorer.communication_models import ThriftRequest
 from thrift_explorer.thrift_manager import ThriftManager
 
 
@@ -10,7 +11,6 @@ def create_app(test_config=None):
     app = Flask(__name__)
     if test_config is None:
         app.config["THRIFT_DIRECTORY"] = os.environ["THRIFT_DIRECTORY"]
-        app.config["DEFAULT_TRANSPORT"] = os.environ["THRIFT_DIRECTORY"]
         app.config["DEFAULT_PROTOCOL"] = os.environ.get(
             "DEFAULT_THRIFT_PROTOCOL", "TBinaryProtocol"
         )
@@ -66,6 +66,15 @@ def create_app(test_config=None):
         if request.method == "POST":
             return "I ran a service command"
         else:
-            return "Here is an empty body"
+            return ThriftRequest(
+                thrift_file=thrift,
+                service_name=service,
+                endpoint_name=method,
+                host="<hostname>",
+                port=9090,
+                protocol=app.config["DEFAULT_PROTOCOL"],
+                transport=app.config["DEFAULT_TRANSPORT"],
+                request_body={},
+            ).to_json()
 
     return app

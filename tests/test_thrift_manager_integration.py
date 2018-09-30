@@ -15,8 +15,8 @@ def _build_request(method, body, port="6000"):
         endpoint_name=method,
         host="127.0.0.1",
         port=port,
-        protocol="BINARY",
-        transport="BUFFERED",
+        protocol="TBinaryProtocol",
+        transport="TBufferedTransport",
         request_body=body,
     )
 

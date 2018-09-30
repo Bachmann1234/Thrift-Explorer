@@ -20,8 +20,8 @@ def _build_request(**kwargs):
         endpoint_name=kwargs.get("endpoint_name", "ping"),
         host=kwargs.get("host", "127.0.0.1"),
         port=kwargs.get("port", "6000"),
-        protocol=kwargs.get("protocol", "BINARY"),
-        transport=kwargs.get("transport", "BUFFERED"),
+        protocol=kwargs.get("protocol", "TBinaryProtocol"),
+        transport=kwargs.get("transport", "TBufferedTransport"),
         request_body=kwargs.get("request_body", {}),
     )
 

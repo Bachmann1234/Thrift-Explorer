@@ -5,7 +5,13 @@ from thrift_explorer import server
 
 @pytest.fixture
 def client(example_thrift_directory):
-    app = server.create_app({"THRIFT_DIRECTORY": example_thrift_directory})
+    app = server.create_app(
+        {
+            "THRIFT_DIRECTORY": example_thrift_directory,
+            "DEFAULT_PROTOCOL": "TBinaryProtocol",
+            "DEFAULT_TRANSPORT": "TBufferedTransport",
+        }
+    )
     client = app.test_client()
     yield client
 
@@ -67,3 +73,12 @@ def test_get_thrift_definition(client, batman_thrift_text):
     response = client.get("/Batman")
     assert response.status == "200 OK"
     assert response.data == batman_thrift_text.encode("utf-8")
+
+
+def test_service_method_get(client):
+    response = client.get("/Batman/BatPuter/getVillain")
+    assert response.status == "200 OK"
+    assert (
+        response.data
+        == b'{"thrift_file": "Batman.thrift", "service_name": "BatPuter", "endpoint_name": "getVillain", "host": "<hostname>", "port": 9090, "protocol": "tbinaryprotocol", "transport": "tbufferedtransport", "request_body": {}}'
+    )

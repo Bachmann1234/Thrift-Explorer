@@ -9,15 +9,16 @@
     finagle protocol
     mutliplex protocol
 """
+import json
 from enum import Enum, auto
 
 import attr
 
 
 class Protocol(Enum):
-    BINARY = "binary"
-    JSON = "json"
-    COMPACT = "compact"
+    BINARY = "tbinaryprotocol"
+    JSON = "tjsonprotocol"
+    COMPACT = "tcompactprotocol"
 
     @staticmethod
     def from_string(input_string):
@@ -25,8 +26,8 @@ class Protocol(Enum):
 
 
 class Transport(Enum):
-    BUFFERED = "buffered"
-    FRAMED = "framed"
+    BUFFERED = "tbufferedtransport"
+    FRAMED = "tframedtransport"
 
     @staticmethod
     def from_string(input_string):
@@ -70,6 +71,12 @@ class ThriftRequest(object):
     protocol = attr.ib(converter=Protocol.from_string)
     transport = attr.ib(converter=Transport.from_string)
     request_body = attr.ib(default=attr.Factory(dict))
+
+    def to_json(self):
+        to_dump = self.__dict__
+        to_dump["protocol"] = self.protocol.value
+        to_dump["transport"] = self.transport.value
+        return json.dumps(to_dump)
 
 
 @attr.s(frozen=True)
