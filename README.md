@@ -21,7 +21,7 @@ The server requires one environment variable be set "THRIFT_DIRECTORY" this shou
 
 In addition you can set DEFAULT_PROTOCOL (TBinaryProtocol if not defined) and DEFAULT_TRANSPORT (TBufferedTransport if not defined)
 
-One you have configured the server you can run the flask development server our use your favorite WIGI HTTP server to run the service
+One you have configured the server you can run the flask development server or use your favorite WIGI HTTP server to run the service
 
 ## Running the example thrift server
 
