@@ -22,7 +22,7 @@ add the todo thrifts to thrift explorer and start the server. (I will be using [
 
 You can see what services are loaded
 
-```
+```json
 curl -Ss localhost:5000 | jq '.'                                                                                                                                                                     
 {
   "thrifts": {
@@ -38,7 +38,7 @@ curl -Ss localhost:5000 | jq '.'
 
 List the methods of a particular service
 
-```
+```json
 curl -Ss localhost:5000/todo/TodoService/ | jq '.'                                                                                                                                                   
 {
   "thrift": "todo.thrift",
@@ -57,7 +57,7 @@ curl -Ss localhost:5000/todo/TodoService/ | jq '.'
 
 Make a call to one of the methods of that service (the response is in the "data" field of the response body)
 
-```
+```json
 curl -Ss -X POST \                                                                                                                                                                                   
            http://localhost:5000/todo/TodoService/createTask/ \
            -H 'Content-Type: application/json' \
@@ -96,7 +96,7 @@ curl -Ss -X POST \
 
 and just for fun we will make another call
 
-```
+```json
 curl -Ss -X POST \                                                                                                                                                                                   
                http://localhost:5000/todo/TodoService/getTask/ \
                -H 'Content-Type: application/json' \
@@ -134,7 +134,7 @@ curl -Ss -X POST \
 
 If you make a mistake making a request thrift explorer tries to be helpful telling you the mistake you made
 
-```
+```json
 curl -sS -X POST \ 
               http://localhost:5000/todo/TodoService/completeTask/ \
               -d '{
@@ -158,7 +158,7 @@ curl -sS -X POST \
 
 and if you just want to get the thrift itself you can do that to
 
-```
+```java
 curl -Ss localhost:5000/todo/
 include "basethrifts/Exceptions.thrift"
 
