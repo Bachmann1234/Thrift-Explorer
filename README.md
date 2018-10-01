@@ -132,6 +132,30 @@ curl -Ss -X POST \
 }
 ```
 
+If you make a mistake making a request thrift explorer tries to be helpful telling you the mistake you made
+
+```
+curl -sS -X POST \ 
+              http://localhost:5000/todo/TodoService/completeTask/ \
+              -d '{
+                "host": "localhost",
+                "port": 6000,
+                "protocol": "tbinaryprotocol",
+                "transport": "tbufferedtransport",
+                "request_body": {"description": "task 1"}
+            }' | jq '.'
+{
+  "errors": [
+    {
+      "code": "ErrorCode.REQUIRED_FIELD_MISSING",
+      "message": "Required Field 'taskId' not found",
+      "arg_spec": null
+    }
+  ]
+}
+```
+
+
 and if you just want to get the thrift itself you can do that to
 
 ```

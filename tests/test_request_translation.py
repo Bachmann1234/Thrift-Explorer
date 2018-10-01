@@ -26,6 +26,14 @@ def test_basic_args():
     )
 
 
+def test_basic_args_skipping_missing_ones():
+    thrift_module, service_specs = _parse_services_for_thrift("simpleType.thrift")
+    test_service = service_specs["TestService"]
+    assert {"intParameter": 2} == translate_request_body(
+        test_service.endpoints["returnInt"], {"intParameter": 2}, thrift_module
+    )
+
+
 def test_enum():
     enum_thrift, services = _parse_services_for_thrift("enum.thrift")
     hero_service = services["HeroService"]

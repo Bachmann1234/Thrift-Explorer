@@ -138,3 +138,20 @@ def test_service_method_post(todo_server, todo_client, flask_client):
     del actual["time_to_connect"]
     assert response.status == "200 OK"
     assert actual == expected
+
+
+def test_service_invalid_call(todo_server, todo_client, flask_client):
+    response = flask_client.post(
+        "/todo/TodoService/completeTask/",
+        data=json.dumps({"host": "127.0.0.1", "port": 6000, "request_body": {}}),
+    )
+    assert response.status == "400 BAD REQUEST"
+    assert json.loads(response.data) == {
+        "errors": [
+            {
+                "arg_spec": None,
+                "code": "ErrorCode.REQUIRED_FIELD_MISSING",
+                "message": "Required Field 'taskId' not found",
+            }
+        ]
+    }

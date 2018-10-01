@@ -69,9 +69,14 @@ def translate_request_body(endpoint, request_body, thrift_module):
     """
     processed_args = {}
     for arg_spec in endpoint.args:
-        processed_args[arg_spec.name] = arg_spec.type_info.format_arg_for_thrift(
-            request_body[arg_spec.name], thrift_module
-        )
+        try:
+            processed_args[arg_spec.name] = arg_spec.type_info.format_arg_for_thrift(
+                request_body[arg_spec.name], thrift_module
+            )
+        except KeyError:
+            # We assume validation happened earlier so if an arg
+            # is missing we assume it is not required
+            continue
     return processed_args
 
 

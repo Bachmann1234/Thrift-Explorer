@@ -20,6 +20,9 @@ class ThriftType(ABC):
     def validate_arg(self, raw_arg):
         raise NotImplementedError
 
+    def to_jsonable_dict(self):
+        return str(self)
+
 
 @attr.s(frozen=True)
 class ThriftService(object):
@@ -76,6 +79,10 @@ class ThriftSpec(object):
     type_info = attr.ib()
     required = attr.ib()
 
+    def to_jsonable_dict(self):
+        result = self.__dict__
+        result["type_info"] == self.type_info.to_jsonable_dict
+
 
 @attr.s(frozen=True)
 class TStruct(ThriftType):
@@ -125,6 +132,11 @@ class TStruct(ThriftType):
                     errors.append("Required field '{}' missing".format(field.name))
         return errors if errors else None
 
+    def to_jsonable_dict(self):
+        result = self.__dict__
+        result["fields"] = [f.to_jsonable_dict() for f in self.fields]
+        return result
+
 
 def _validate_collection(collection_class, raw_arg, value_type):
     errors = _validate_basic_type(collection_class, raw_arg)
@@ -160,6 +172,11 @@ class TList(ThriftType):
     def validate_arg(self, raw_arg):
         return _validate_collection(list, raw_arg, self.value_type)
 
+    def to_jsonable_dict(self):
+        result = self.__dict__
+        result["value_type"] = self.value_type.to_jsonable_dict()
+        return result
+
 
 @attr.s(frozen=True)
 class TSet(ThriftType):
@@ -179,6 +196,11 @@ class TSet(ThriftType):
 
     def validate_arg(self, raw_arg):
         return _validate_collection(set, raw_arg, self.value_type)
+
+    def to_jsonable_dict(self):
+        result = self.__dict__
+        result["value_type"] = self.value_type.to_jsonable_dict()
+        return result
 
 
 @attr.s(frozen=True)
@@ -224,6 +246,12 @@ class TMap(ThriftType):
                     )
                 )
         return errors if errors else None
+
+    def to_jsonable_dict(self):
+        result = self.__dict__
+        result["key_type"] = self.key_type.to_jsonable_dict()
+        result["value_type"] = self.value_type.to_jsonable_dict()
+        return result
 
 
 @attr.s(frozen=True)

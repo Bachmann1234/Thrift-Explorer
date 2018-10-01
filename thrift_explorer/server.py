@@ -91,8 +91,14 @@ def create_app(test_config=None):
                 request_body=request_json["request_body"],
             )
             errors = thrift_manager.validate_request(thrift_request)
+            print(errors)
             if errors:
-                return json.dumps(errors.__dict__)
+                return (
+                    json.dumps(
+                        {"errors": [error.to_jsonable_dict() for error in errors]}
+                    ),
+                    400,
+                )
             else:
                 return (
                     json.dumps(

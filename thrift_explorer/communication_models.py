@@ -118,7 +118,17 @@ class Error(object):
     code = attr.ib()
     message = attr.ib()
 
+    def to_jsonable_dict(self):
+        result = self.__dict__
+        result["code"] = str(self.code)
+        return result
+
 
 @attr.s(frozen=True)
 class FieldError(Error):
     arg_spec = attr.ib()
+
+    def to_jsonable_dict(self):
+        result = super().to_jsonable_dict()
+        result["arg_spec"] = self.arg_spec.to_jsonable_dict()
+        return result
