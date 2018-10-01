@@ -9,21 +9,22 @@ from thrift_explorer.thrift_manager import ThriftManager
 JSON_CONTENT_TYPE = {"Content-Type": "application/json; charset=utf-8"}
 TEXT_CONTENT_TYPE = {"Content-Type": "text/plain; charset=utf-8"}
 
+THRIFT_DIRECTORY_ENV = "THRIFT_DIRECTORY"
+DEFAULT_PROTOCOL_ENV = "DEFAULT_THRIFT_PROTOCOL"
+DEFAULT_TRANSPORT_ENV = "DEFAULT_THRIFT_TRANSPORT"
 
-def create_app(test_config=None):
+
+def create_app():
     app = Flask(__name__)
-    if test_config is None:
-        app.config["THRIFT_DIRECTORY"] = os.environ["THRIFT_DIRECTORY"]
-        app.config["DEFAULT_PROTOCOL"] = os.environ.get(
-            "DEFAULT_THRIFT_PROTOCOL", "TBinaryProtocol"
-        )
-        app.config["DEFAULT_TRANSPORT"] = os.environ.get(
-            "DEFAULT_THRIFT_TRANSPORT", "TBufferedTransport"
-        )
-    else:
-        app.config.from_mapping(test_config)
+    app.config[THRIFT_DIRECTORY_ENV] = os.environ[THRIFT_DIRECTORY_ENV]
+    app.config[DEFAULT_PROTOCOL_ENV] = os.environ.get(
+        DEFAULT_PROTOCOL_ENV, "TBinaryProtocol"
+    )
+    app.config[DEFAULT_TRANSPORT_ENV] = os.environ.get(
+        DEFAULT_TRANSPORT_ENV, "TBufferedTransport"
+    )
 
-    thrift_manager = ThriftManager(app.config["THRIFT_DIRECTORY"])
+    thrift_manager = ThriftManager(app.config[THRIFT_DIRECTORY_ENV])
 
     def _add_extension_if_needed(thrift):
         if not thrift.endswith(".thrift"):
@@ -84,9 +85,9 @@ def create_app(test_config=None):
                 endpoint_name=method.name,
                 host=request_json["host"],
                 port=request_json["port"],
-                protocol=request_json.get("protocol", app.config["DEFAULT_PROTOCOL"]),
+                protocol=request_json.get("protocol", app.config[DEFAULT_PROTOCOL_ENV]),
                 transport=request_json.get(
-                    "transport", app.config["DEFAULT_TRANSPORT"]
+                    "transport", app.config[DEFAULT_TRANSPORT_ENV]
                 ),
                 request_body=request_json["request_body"],
             )
@@ -115,8 +116,8 @@ def create_app(test_config=None):
                         endpoint_name=method.name,
                         host="<hostname>",
                         port=9090,
-                        protocol=app.config["DEFAULT_PROTOCOL"],
-                        transport=app.config["DEFAULT_TRANSPORT"],
+                        protocol=app.config[DEFAULT_PROTOCOL_ENV],
+                        transport=app.config[DEFAULT_TRANSPORT_ENV],
                         request_body={},
                     ).to_jsonable_dict()
                 ),

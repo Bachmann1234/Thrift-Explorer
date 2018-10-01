@@ -4,24 +4,25 @@ import json
 import pytest
 
 from thrift_explorer import server
+from thrift_explorer.server import (
+    DEFAULT_PROTOCOL_ENV,
+    DEFAULT_TRANSPORT_ENV,
+    THRIFT_DIRECTORY_ENV,
+)
 from todoserver import service
 
 
-def get_client(thrift_dir):
-    app = server.create_app(
-        {
-            "THRIFT_DIRECTORY": thrift_dir,
-            "DEFAULT_PROTOCOL": "TBinaryProtocol",
-            "DEFAULT_TRANSPORT": "TBufferedTransport",
-        }
-    )
+def get_client(thirft_dir, monkeypatch):
+    monkeypatch.setenv(THRIFT_DIRECTORY_ENV, thirft_dir)
+
+    app = server.create_app()
     app.testing = True
     return app.test_client()
 
 
 @pytest.fixture
-def flask_client(example_thrift_directory):
-    yield get_client(example_thrift_directory)
+def flask_client(example_thrift_directory, monkeypatch):
+    yield get_client(example_thrift_directory, monkeypatch)
 
 
 @pytest.fixture(autouse=True)

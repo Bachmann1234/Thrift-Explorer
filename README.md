@@ -183,11 +183,11 @@ service TodoService {
 
 The service is configured via environment variables
 
-| Variable          | Description                                                                   | Default            | Requred |
-|-------------------|-------------------------------------------------------------------------------|--------------------|---------|
-| THRIFT_DIRECTORY  | The directory where the thrifts you want the server to be aware of are stored |                    | Yes     |
-| DEFAULT_PROTOCOL  | What thrift protocol should the server assume if one is not provided          | TBinaryProtocol    | No      |
-| DEFAULT_TRANSPORT | What thrift transport should the server assume if one is not provided         | TBufferedTransport | No      |
+| Variable                 | Description                                                                   | Default            | Required |
+|--------------------------|-------------------------------------------------------------------------------|--------------------|----------|
+| THRIFT_DIRECTORY         | The directory where the thrifts you want the server to be aware of are stored |                    | Yes      |
+| DEFAULT_THRIFT_PROTOCOL  | What thrift protocol should the server assume if one is not provided          | TBinaryProtocol    | No       |
+| DEFAULT_THRIFT_TRANSPORT | What thrift transport should the server assume if one is not provided         | TBufferedTransport | No       |
 
 One you have configured the server you can run the flask development server or use your favorite WIGI HTTP server to run the service
 
