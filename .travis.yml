@@ -1,17 +1,24 @@
 language: python
 python:
-  - "3.7-dev"
+- 3.7-dev
 env:
   global:
-    - PIPENV_VENV_IN_PROJECT=1
-    - PIPENV_IGNORE_VIRTUALENVS=1
+  - PIPENV_VENV_IN_PROJECT=1
+  - PIPENV_IGNORE_VIRTUALENVS=1
 install:
-  - pip install pipenv coveralls 
-  - pipenv install --dev --three
+- pip install pipenv coveralls
+- pipenv install --dev --three
 script:
-  - pipenv run python -m pytest --cov-config .coveragerc --cov=thrift_explorer/ tests
+- pipenv run python -m pytest --cov-config .coveragerc --cov=thrift_explorer/ tests
 after_success:
-  - coveralls
+- coveralls
 notifications:
   on_success: change
   on_failure: always
+deploy:
+  provider: pypi
+  username: matt.bachmann
+  password:
+    secure: Nx20xAMS0XzikdOFVVQnIj0XHBbkYVLrWbrWErP4c9s154bJaxtBs2nUsCOl8Q60aEFYJyBIH4rvvrU+CPxjBM0UQNeQzXjn9kOL9gFm4vo/x1EtcXTdgX7YHkstbRYYM4ZkjdtJK//aMigW2eXrc0eWIZWS1RGIDvt7+vWarICeBWZYbwSwpEbvl/R2wLKEgJ9foIhVQ3juRytQm/LwtvN/KdBpBccIfenKQj27uNIWekJfADvT8hTZxZcyzghZ680gAvemxa3YTdZlGqzbk/E/PAXBPuITQrjkq0I9+jTBwpb/qqAS4zt3dyM+BgOogqYC3TE3r+qXZm2ZEcR9OvXMqxGe9WIndVSCIBeSUfndeYZFaMV/PdOvzxoYa4H5SRBR5qkQ6MMZZR4k/Cg42p0zlqhHdSaQpssMPD7iEWajn3OPzUp9/V4fk88Pcx7yQwjuq9NFg4hhqqVwz/BU15QQlRLT8XGMK6nyz858Jq9+yVQeLEizZLjVtysZ1M3tnSwShfAXY3WD2BW5wIqOjoPsFB8SbQ2sS15RcDNZXw5XLWNuFzsgkP4zUA3EQMtexR+8lKbKlyJTcglPeFqaXmbuXHlO/iGH/vPXaYhC2d6qbaE9AdlRvwx2N7dPcGvhjv45Sb025/8tu11puZqdoLBpF+Wz4DZg+T5ii1X+ZfE=
+  on:
+    tags: true
