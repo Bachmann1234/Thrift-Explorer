@@ -149,7 +149,11 @@ curl -sS -X POST \
     {
       "code": "ErrorCode.REQUIRED_FIELD_MISSING",
       "message": "Required Field 'taskId' not found",
-      "arg_spec": null
+      "arg_spec": {
+                    "name": "taskId",
+                    "required": True,
+                    "type_info": {"ttype": "string"},
+      },
     }
   ]
 }
