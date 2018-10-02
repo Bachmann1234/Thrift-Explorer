@@ -1,9 +1,13 @@
 import json
 import os
 
+import attr
 from flask import Flask, request
 
-from thrift_explorer.communication_models import ThriftRequest
+from thrift_explorer.communication_models import (
+    CommunicationModelEncoder,
+    ThriftRequest,
+)
 from thrift_explorer.thrift_manager import ThriftManager
 
 JSON_CONTENT_TYPE = {"Content-Type": "application/json; charset=utf-8"}
@@ -95,14 +99,22 @@ def create_app():
             if errors:
                 return (
                     json.dumps(
-                        {"errors": [error.to_jsonable_dict() for error in errors]}
+                        {
+                            "errors": [
+                                attr.asdict(error, recurse=True) for error in errors
+                            ]
+                        },
+                        cls=CommunicationModelEncoder,
                     ),
                     400,
                 )
             else:
                 return (
                     json.dumps(
-                        thrift_manager.make_request(thrift_request).to_jsonable_dict()
+                        attr.asdict(
+                            thrift_manager.make_request(thrift_request), recurse=True
+                        ),
+                        cls=CommunicationModelEncoder,
                     ),
                     200,
                     JSON_CONTENT_TYPE,
@@ -110,16 +122,20 @@ def create_app():
         else:
             return (
                 json.dumps(
-                    ThriftRequest(
-                        thrift_file=thrift,
-                        service_name=service,
-                        endpoint_name=method.name,
-                        host="<hostname>",
-                        port=9090,
-                        protocol=app.config[DEFAULT_PROTOCOL_ENV],
-                        transport=app.config[DEFAULT_TRANSPORT_ENV],
-                        request_body={},
-                    ).to_jsonable_dict()
+                    attr.asdict(
+                        ThriftRequest(
+                            thrift_file=thrift,
+                            service_name=service,
+                            endpoint_name=method.name,
+                            host="<hostname>",
+                            port=9090,
+                            protocol=app.config[DEFAULT_PROTOCOL_ENV],
+                            transport=app.config[DEFAULT_TRANSPORT_ENV],
+                            request_body={},
+                        ),
+                        recurse=True,
+                    ),
+                    cls=CommunicationModelEncoder,
                 ),
                 200,
                 JSON_CONTENT_TYPE,

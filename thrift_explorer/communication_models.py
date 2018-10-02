@@ -10,9 +10,22 @@
     mutliplex protocol
 """
 import json
+from datetime import timedelta
 from enum import Enum, auto
 
 import attr
+
+
+class CommunicationModelEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, ErrorCode):
+            return o.name
+        if isinstance(o, Enum):
+            return o.value
+        if isinstance(o, timedelta):
+            return str(o)
+
+        return super().default(o)
 
 
 class Protocol(Enum):
@@ -72,12 +85,6 @@ class ThriftRequest(object):
     transport = attr.ib(converter=Transport.from_string)
     request_body = attr.ib(default=attr.Factory(dict))
 
-    def to_jsonable_dict(self):
-        to_dump = self.__dict__
-        to_dump["protocol"] = self.protocol.value
-        to_dump["transport"] = self.transport.value
-        return to_dump
-
 
 @attr.s(frozen=True)
 class ThriftResponse(object):
@@ -97,13 +104,6 @@ class ThriftResponse(object):
     time_to_make_request = attr.ib()
     time_to_connect = attr.ib()
 
-    def to_jsonable_dict(self):
-        to_dump = self.__dict__
-        to_dump["request"] = to_dump["request"].to_jsonable_dict()
-        to_dump["time_to_make_request"] = str(self.time_to_make_request)
-        to_dump["time_to_connect"] = str(self.time_to_connect)
-        return to_dump
-
 
 class ErrorCode(Enum):
     THRIFT_NOT_LOADED = auto()
@@ -118,17 +118,7 @@ class Error(object):
     code = attr.ib()
     message = attr.ib()
 
-    def to_jsonable_dict(self):
-        result = self.__dict__
-        result["code"] = str(self.code)
-        return result
-
 
 @attr.s(frozen=True)
 class FieldError(Error):
     arg_spec = attr.ib()
-
-    def to_jsonable_dict(self):
-        result = super().to_jsonable_dict()
-        result["arg_spec"] = self.arg_spec.to_jsonable_dict()
-        return result

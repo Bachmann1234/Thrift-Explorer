@@ -20,9 +20,6 @@ class ThriftType(ABC):
     def validate_arg(self, raw_arg):
         raise NotImplementedError
 
-    def to_jsonable_dict(self):
-        return str(self)
-
 
 @attr.s(frozen=True)
 class ThriftService(object):
@@ -79,10 +76,6 @@ class ThriftSpec(object):
     type_info = attr.ib()
     required = attr.ib()
 
-    def to_jsonable_dict(self):
-        result = self.__dict__
-        result["type_info"] == self.type_info.to_jsonable_dict
-
 
 @attr.s(frozen=True)
 class TStruct(ThriftType):
@@ -98,7 +91,7 @@ class TStruct(ThriftType):
 
     name = attr.ib()
     fields = attr.ib()
-    ttype = "struct"
+    ttype = attr.ib(default="struct")
 
     def format_arg_for_thrift(self, raw_arg, thrift_module):
         clazz = getattr(thrift_module, self.name)
@@ -132,11 +125,6 @@ class TStruct(ThriftType):
                     errors.append("Required field '{}' missing".format(field.name))
         return errors if errors else None
 
-    def to_jsonable_dict(self):
-        result = self.__dict__
-        result["fields"] = [f.to_jsonable_dict() for f in self.fields]
-        return result
-
 
 def _validate_collection(collection_class, raw_arg, value_type):
     errors = _validate_basic_type(collection_class, raw_arg)
@@ -162,7 +150,7 @@ class TList(ThriftType):
     """
 
     value_type = attr.ib()
-    ttype = "list"
+    ttype = attr.ib(default="list")
 
     def format_arg_for_thrift(self, raw_arg, thrift_module):
         return [
@@ -171,11 +159,6 @@ class TList(ThriftType):
 
     def validate_arg(self, raw_arg):
         return _validate_collection(list, raw_arg, self.value_type)
-
-    def to_jsonable_dict(self):
-        result = self.__dict__
-        result["value_type"] = self.value_type.to_jsonable_dict()
-        return result
 
 
 @attr.s(frozen=True)
@@ -187,7 +170,7 @@ class TSet(ThriftType):
     """
 
     value_type = attr.ib()
-    ttype = "set"
+    ttype = attr.ib(default="set")
 
     def format_arg_for_thrift(self, raw_arg, thrift_module):
         return {
@@ -196,11 +179,6 @@ class TSet(ThriftType):
 
     def validate_arg(self, raw_arg):
         return _validate_collection(set, raw_arg, self.value_type)
-
-    def to_jsonable_dict(self):
-        result = self.__dict__
-        result["value_type"] = self.value_type.to_jsonable_dict()
-        return result
 
 
 @attr.s(frozen=True)
@@ -217,7 +195,7 @@ class TMap(ThriftType):
 
     key_type = attr.ib()
     value_type = attr.ib()
-    ttype = "map"
+    ttype = attr.ib(default="map")
 
     def format_arg_for_thrift(self, raw_arg, thrift_module):
         return {
@@ -247,12 +225,6 @@ class TMap(ThriftType):
                 )
         return errors if errors else None
 
-    def to_jsonable_dict(self):
-        result = self.__dict__
-        result["key_type"] = self.key_type.to_jsonable_dict()
-        result["value_type"] = self.value_type.to_jsonable_dict()
-        return result
-
 
 @attr.s(frozen=True)
 class TEnum(ThriftType):
@@ -277,7 +249,7 @@ class TEnum(ThriftType):
     name = attr.ib()
     names_to_values = attr.ib()
     values_to_names = attr.ib()
-    ttype = "i32"
+    ttype = attr.ib(default="i32")
 
     def format_arg_for_thrift(self, raw_arg, _):
         """
@@ -299,7 +271,7 @@ class TEnum(ThriftType):
 
 @attr.s(frozen=True)
 class TBool(ThriftType):
-    ttype = "bool"
+    ttype = attr.ib(default="bool")
 
     def validate_arg(self, raw_arg):
         return _validate_basic_type(bool, raw_arg)
@@ -324,7 +296,7 @@ def _numeric_validation(
 class TByte(ThriftType):
     MIN_VALUE = -128
     MAX_VALUE = 127
-    ttype = "byte"
+    ttype = attr.ib(default="byte")
 
     def validate_arg(self, raw_arg):
         return _numeric_validation(
@@ -336,7 +308,7 @@ class TByte(ThriftType):
 class TI16(ThriftType):
     MIN_VALUE = -32768
     MAX_VALUE = 32767
-    ttype = "i16"
+    ttype = attr.ib(default="i16")
 
     def validate_arg(self, raw_arg):
         return _numeric_validation(
@@ -348,7 +320,7 @@ class TI16(ThriftType):
 class TI32(ThriftType):
     MIN_VALUE = -2147483648
     MAX_VALUE = 2147483647
-    ttype = "i32"
+    ttype = attr.ib(default="i32")
 
     def validate_arg(self, raw_arg):
         return _numeric_validation(
@@ -360,7 +332,7 @@ class TI32(ThriftType):
 class TI64(ThriftType):
     MIN_VALUE = -9223372036854775808
     MAX_VALUE = 9223372036854775807
-    ttype = "i64"
+    ttype = attr.ib(default="i64")
 
     def validate_arg(self, raw_arg):
         return _numeric_validation(
@@ -370,7 +342,7 @@ class TI64(ThriftType):
 
 @attr.s(frozen=True)
 class TDouble(ThriftType):
-    ttype = "double"
+    ttype = attr.ib(default="double")
     # this may bite me some day. sys.float_info implementation dependent.
     # In thrift its 64 bit signed float. That being said if python
     # cant represent the float I dont see what you can dol
@@ -386,7 +358,7 @@ class TDouble(ThriftType):
 
 @attr.s(frozen=True)
 class TBinary(ThriftType):
-    ttype = "binary"
+    ttype = attr.ib(default="binary")
 
     def validate_arg(self, raw_arg):
         return _validate_basic_type(bytes, raw_arg)
@@ -394,7 +366,7 @@ class TBinary(ThriftType):
 
 @attr.s(frozen=True)
 class TString(ThriftType):
-    ttype = "string"
+    ttype = attr.ib(default="string")
 
     def validate_arg(self, raw_arg):
         return _validate_basic_type(str, raw_arg)

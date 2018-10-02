@@ -149,8 +149,12 @@ def test_service_invalid_call(todo_server, todo_client, flask_client):
     assert json.loads(response.data) == {
         "errors": [
             {
-                "arg_spec": None,
-                "code": "ErrorCode.REQUIRED_FIELD_MISSING",
+                "arg_spec": {
+                    "name": "taskId",
+                    "required": True,
+                    "type_info": {"ttype": "string"},
+                },
+                "code": "REQUIRED_FIELD_MISSING",
                 "message": "Required Field 'taskId' not found",
             }
         ]

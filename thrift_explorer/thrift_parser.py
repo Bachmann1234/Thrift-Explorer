@@ -46,14 +46,14 @@ def _parse_type(type_info):
     ttype = TType._VALUES_TO_NAMES[ttype_code].lower()
     if nested_type_info is None:
         return _BASIC_TYPE_MAP[ttype]()
-    elif ttype == TList.ttype:
+    elif ttype == "list":
         return TList(value_type=_parse_type(nested_type_info))
-    elif ttype == TSet.ttype:
+    elif ttype == "set":
         return TSet(value_type=_parse_type(nested_type_info))
-    elif ttype == TMap.ttype:
+    elif ttype == "map":
         key, value = nested_type_info
         return TMap(key_type=_parse_type(key), value_type=_parse_type(value))
-    elif ttype == TStruct.ttype:
+    elif ttype == "struct":
         return TStruct(
             name=nested_type_info.__name__,
             fields=[
