@@ -33,10 +33,9 @@ def clear_todo_db():
 def test_list_services(flask_client):
     response = flask_client.get("/")
     assert response.status == "200 OK"
-    assert (
-        response.data
-        == b'{"thrifts": {"Batman.thrift": ["BatPuter"], "todo.thrift": ["TodoService"]}}'
-    )
+    assert json.loads(response.data) == {
+        "thrifts": {"Batman.thrift": ["BatPuter"], "todo.thrift": ["TodoService"]}
+    }
 
 
 def test_get_service_info(flask_client):
