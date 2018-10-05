@@ -14,6 +14,14 @@ Thrift explorer is intended to be a tool aimed at developers who use thrift serv
 You place your service thrifts in a directory and configure Thrift Explorer to pull from it. Then make http calls to Thrift Explorer providing information such as host/port and 
 it will forward your request to it and return the response.
 
+## Installation
+
+Install with pip!
+
+```
+pip install thriftexplorer
+```
+
 ## Example Usage
 
 Example calls are provided as part of a [Postman Collection](ThriftExplorer.postman_collection.json). However. Lets walk though a basic session.

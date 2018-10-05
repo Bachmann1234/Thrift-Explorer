@@ -14,10 +14,10 @@ from todoserver import service
 
 def get_client(thirft_dir, monkeypatch):
     monkeypatch.setenv(THRIFT_DIRECTORY_ENV, thirft_dir)
+    from thrift_explorer.wsgi import application
 
-    app = server.create_app()
-    app.testing = True
-    return app.test_client()
+    application.testing = True
+    return application.test_client()
 
 
 @pytest.fixture
