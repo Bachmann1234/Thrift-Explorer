@@ -7,11 +7,12 @@
 
 [Apache Thrift](https://thrift.apache.org/) is a language agnostic framework that enables typed communication between services. 
 
-Thrift explorer is intended to be a tool aimed at developers who use thrift services. Enabling the user to explore thrift services they
-have access to without having to write or maintain any code. If the required thrifts are loaded into Thrift Explorer developers are enabled to access thrift apis with the same toolset they use for HTTP apis.
+Thrift explorer is intended to be a tool aimed at developers who use thrift services. Enabling the user to explore their services without having to write or maintain any code. 
 
-Right now the primary method for doing this is the the flask server. However, i'm thinking the tools here could be used to make cli's/gui's. For now if I invest more time in this I will be spending it
-on refining the workflow that already exists rather than providing more workflows
+## How does this work
+
+You place your service thrifts in a directory and configure Thrift Explorer to pull from it. Then make http calls to Thrift Explorer providing information such as host/port and 
+it will forward your request to it and return the response.
 
 ## Example Usage
 
@@ -199,7 +200,7 @@ One you have configured the server you can run the flask development server or u
 
 This repo contains some example thrifts and one example thrift service. See [Todo Thrift](/example-thrifts/todo.thrift) for a service definition.
 
-To run it just set your pythonpath appropriately (see [My environment](/environment.fish) for how I setup my environment (I use fish sell). Then run
+To run it just set your pythonpath appropriately (see [My environment](/environment.fish) for how I setup my environment (I use fish shell). Then run
 
 ```
 python tests/todoserver/service.py
