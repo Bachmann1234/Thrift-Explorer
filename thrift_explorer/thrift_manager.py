@@ -186,9 +186,10 @@ class ThriftManager(object):
         with open(self.thrift_paths[thrift]) as infile:
             return infile.read()
 
-    def validate_request(self, thrift_request):
+    def _thrift_is_loaded(self, thrift_request):
         try:
             thrift_spec = self.service_specs[thrift_request.thrift_file]
+            return None
         except KeyError:
             return [
                 Error(
@@ -198,37 +199,46 @@ class ThriftManager(object):
                     ),
                 )
             ]
+
+    def _service_in_thrift(self, thrift_spec, service_name, thrift_file):
         try:
-            service_spec = thrift_spec[thrift_request.service_name]
+            service_spec = thrift_spec[service_name]
         except KeyError:
             return [
                 Error(
                     code=ErrorCode.SERVICE_NOT_IN_THRIFT,
                     message="Service '{}' not in thrift '{}'".format(
-                        thrift_request.service_name, thrift_request.thrift_file
+                        service_name, thrift_file
                     ),
                 )
             ]
+
+    def _endpoint_in_service(
+        self, service_spec, endpoint_name, service_name, thrift_file
+    ):
         try:
-            endpoint_spec = service_spec.endpoints[thrift_request.endpoint_name]
+            endpoint_spec = service_spec.endpoints[endpoint_name]
         except KeyError:
             return [
                 Error(
                     code=ErrorCode.ENDPOINT_NOT_IN_SERVICE,
                     message="Endpoint '{}' not in service '{}' in thrift '{}'".format(
-                        thrift_request.endpoint_name,
-                        thrift_request.service_name,
-                        thrift_request.thrift_file,
+                        endpoint_name, service_name, thrift_file
                     ),
                 )
             ]
 
+    def _validate_request_body(
+        self, thrift_file, service_name, endpoint_name, request_body
+    ):
         validation_errors = []
-        for arg_spec in endpoint_spec.args:
+        for arg_spec in (
+            self.service_specs[thrift_file][service_name]
+            .endpoints[endpoint_name]
+            .args  # this kind of crap makes me think I need to rethink my structures
+        ):
             try:
-                error = arg_spec.type_info.validate_arg(
-                    thrift_request.request_body[arg_spec.name]
-                )
+                error = arg_spec.type_info.validate_arg(request_body[arg_spec.name])
                 if error:
                     validation_errors.append(
                         FieldError(
@@ -249,6 +259,30 @@ class ThriftManager(object):
                         )
                     )
         return validation_errors
+
+    def validate_request(self, thrift_request):
+        return (
+            self._thrift_is_loaded(thrift_request)
+            or self._service_in_thrift(
+                self.service_specs[thrift_request.thrift_file],
+                thrift_request.service_name,
+                thrift_request.thrift_file,
+            )
+            or self._endpoint_in_service(
+                self.service_specs[thrift_request.thrift_file][
+                    thrift_request.service_name
+                ],
+                thrift_request.endpoint_name,
+                thrift_request.service_name,
+                thrift_request.thrift_file,
+            )
+            or self._validate_request_body(
+                thrift_request.thrift_file,
+                thrift_request.service_name,
+                thrift_request.endpoint_name,
+                thrift_request.request_body,
+            )
+        )
 
     def make_request(self, thrift_request):
         thriftpy_service = getattr(

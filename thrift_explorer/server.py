@@ -87,13 +87,13 @@ def create_app():
                 thrift_file=thrift,
                 service_name=service,
                 endpoint_name=method.name,
-                host=request_json["host"],
-                port=request_json["port"],
+                host=request_json.get("host"),
+                port=request_json.get("port"),
                 protocol=request_json.get("protocol", app.config[DEFAULT_PROTOCOL_ENV]),
                 transport=request_json.get(
                     "transport", app.config[DEFAULT_TRANSPORT_ENV]
                 ),
-                request_body=request_json["request_body"],
+                request_body=request_json.get("request_body"),
             )
             errors = thrift_manager.validate_request(thrift_request)
             if errors:
