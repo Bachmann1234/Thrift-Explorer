@@ -1,4 +1,7 @@
 language: python
+sudo: required
+services:
+- docker        
 python:
 - 3.7-dev
 env:
@@ -6,6 +9,8 @@ env:
   - PIPENV_VENV_IN_PROJECT=1
   - PIPENV_IGNORE_VIRTUALENVS=1
   - secure: Fb/yN5d5yJsl11Eu55xDE20tXuq/9xFNMw+nsTxQ6ydNW2j07K+BnMVhK189jOrSOQegZyljTdSE/KNCrOYKyqSpR0c917INmkjOMYgsxqlkgxLFfJY65yF+vpI6T+wqJspXKcqEQKyfJO5LFjHXbw23lXBqq5Jok4NdoJ0Eqy2Y0Bcn4WxkUMIOJYxpTsQCVmRin+0YnEfYHxLt5jIYP0fQdBQuqBj3a51ZMIq4WM5TmUNS9TLQsi8/q+KCmUwG7vIuiBfzBpgL3a89NyA2l6zdyswRBXinP5mrUi5LHDm7c2BO+t9kO2XkS8QrkX7YkUJwmVvORKsIWPqlYLkzhYtZsWoyI7SaeyGY2DB4g+ThkaZasmVp89fG87po8KDgOsY9k0o3A+6/4wcGaHpHbCKqd/Fzkh8isPwxJpVnUDFCMPRf3vYekffGRysI2YIG01Glx8S4kH8rwvDib5SPAQq3spccZupX+PcPhv0c8wTpRUk7SNbs6GGOGxDNkOcdS4dbPKyCgbPorjPeX+1a3QoNwGE+JuBNb5wlKjNqdbDUGv+biILU11dr/62BuoLndhcRG9yENSEsnWo8qb/IRh52F3jPEcWvpOUKhQAvbMhMgcOMTvxOQQRs78qjpKiW2aGt/pnsDlBGq90ib/cMKuav1N5TsHyDy/60M/M4XUE=
+before_install:
+- docker build -t bachmann1234/thrift-explorer .
 install:
 - pip install pipenv coveralls
 - pipenv install --dev --three
