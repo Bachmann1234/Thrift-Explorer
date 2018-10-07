@@ -48,11 +48,17 @@ def create_app():
 
     @app.route("/", methods=["GET"])
     def list_services():
-        return (
-            json.dumps({"thrifts": thrift_manager.list_thrift_services()}),
-            200,
-            JSON_CONTENT_TYPE,
-        )
+        result = []
+        for thrift_file, services in thrift_manager.list_thrift_services().items():
+            for service in services:
+                result.append(
+                    {
+                        "thrift": thrift_file,
+                        "service": service,
+                        "methods": thrift_manager.list_methods(thrift_file, service),
+                    }
+                )
+        return (json.dumps({"thrifts": result}), 200, JSON_CONTENT_TYPE)
 
     @app.route("/<thrift>/", methods=["GET"])
     def get_thrift_definition(thrift):

@@ -26,14 +26,31 @@ You can see what services are loaded
 ```json
 curl -Ss localhost:5000 | jq '.'                                                                                                                                                                     
 {
-  "thrifts": {
-    "Batman.thrift": [
-      "BatPuter"
-    ],
-    "todo.thrift": [
-      "TodoService"
-    ]
-  }
+  "thrifts": [
+    {
+      "thrift": "Batman.thrift",
+      "service": "BatPuter",
+      "methods": [
+        "ping",
+        "getVillain",
+        "addVillain",
+        "saveCase"
+      ]
+    },
+    {
+      "thrift": "todo.thrift",
+      "service": "TodoService",
+      "methods": [
+        "ping",
+        "listTasks",
+        "numTasks",
+        "getTask",
+        "createTask",
+        "completeTask",
+        "fancyNewMethod"
+      ]
+    }
+  ]
 }
 ```
 

@@ -34,7 +34,26 @@ def test_list_services(flask_client):
     response = flask_client.get("/")
     assert response.status == "200 OK"
     assert json.loads(response.data) == {
-        "thrifts": {"Batman.thrift": ["BatPuter"], "todo.thrift": ["TodoService"]}
+        "thrifts": [
+            {
+                "methods": ["ping", "getVillain", "addVillain", "saveCase"],
+                "service": "BatPuter",
+                "thrift": "Batman.thrift",
+            },
+            {
+                "methods": [
+                    "ping",
+                    "listTasks",
+                    "numTasks",
+                    "getTask",
+                    "createTask",
+                    "completeTask",
+                    "fancyNewMethod",
+                ],
+                "service": "TodoService",
+                "thrift": "todo.thrift",
+            },
+        ]
     }
 
 
