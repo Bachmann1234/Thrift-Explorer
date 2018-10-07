@@ -293,10 +293,10 @@ The service is configured via environment variables
 
 This repo contains some example thrifts and one example thrift service. See [Todo Thrift](/example-thrifts/todo.thrift) for a service definition.
 
-To run it just set your pythonpath appropriately (see [My environment](/environment.fish) for how I setup my environment (I use fish shell). Then run
+To run it just set your pythonpath appropriately (see [My environment](/environment.fish) for how I setup my environment (I use fish shell)). Then run
 
 ```
 python tests/todoserver/service.py
 ```
 
-This service is intended as a development/testing aid. It is not required for useing thrift explorer
+This service is intended as a development/testing aid. It is not required for using thrift explorer
