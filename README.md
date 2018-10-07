@@ -209,9 +209,9 @@ export THRIFT_DIRECTORY=$(pwd)/example-thrifts/
 Then start it!
 
 ```
-gunicorn thrift_explorer.wsgi 
+gunicorn -b 127.0.0.1:5000 thrift_explorer.wsgi
 [2018-10-07 12:01:30 -0400] [7864] [INFO] Starting gunicorn 19.9.0
-[2018-10-07 12:01:30 -0400] [7864] [INFO] Listening at: http://127.0.0.1:8000 (7864)
+[2018-10-07 12:01:30 -0400] [7864] [INFO] Listening at: http://127.0.0.1:5000 (7864)
 [2018-10-07 12:01:30 -0400] [7864] [INFO] Using worker: sync
 [2018-10-07 12:01:30 -0400] [7867] [INFO] Booting worker with pid: 7867
 ```
@@ -228,7 +228,7 @@ When running the docker container you are going to need to pass in a directory c
 This will be provided via the source parameter. In the example below I pass in the example-thrifts directory in this very repo 
 
 ```
-docker run --mount type=bind,source=$(pwd)/example-thrifts,target=/thrifts -p 4000:80 bachmann1234/thrift-explorer
+docker run --mount type=bind,source=$(pwd)/example-thrifts,target=/thrifts -p 5000:80 bachmann1234/thrift-explorer
 ```
 
 In english this command is saying "run the thrift-explorer server with example-thrifts as its thrift directory. Make it so that server is accessible to me at port 8000". You can also
