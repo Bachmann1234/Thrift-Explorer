@@ -1,5 +1,5 @@
 #!/bin/bash
 VERSION=$(cat setup.py | grep "VERSION " | cut -d " " -f 3)
 echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-docker tag ${VERSION} bachmann1234/thrift-explorer:latest 
+docker tag bachmann1234/thrift-explorer:latest  bachmann1234/thrift-explorer:${VERSION}
 docker push bachmann1234/thrift-explorer 
