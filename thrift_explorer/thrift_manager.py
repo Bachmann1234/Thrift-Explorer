@@ -148,6 +148,18 @@ def _make_client_call(
 
 
 class ThriftManager(object):
+    """
+    self.thrift_directory - str - path to the thrift files
+    self.thrift_paths - list[str] - list of paths to thrift files
+    self.service_spec -  dict[string][dict[string][ThriftService]]
+
+    self.service_spec is keyed by thrift file name. The value is a dictionary 
+    keyed by service name with its value being the ThriftService object 
+    which has all the useful information you need
+
+    I may need to have a good think about that last field.
+    """
+
     def __init__(self, thrift_directory):
         self.thrift_directory = thrift_directory
         self._thrifts, self.thrift_paths = _load_thrifts(self.thrift_directory)
