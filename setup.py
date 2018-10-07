@@ -9,7 +9,7 @@ from shutil import rmtree
 from setuptools import Command, find_packages, setup
 
 # Package meta-data.
-NAME = "thriftexplorer"
+NAME = "thrift-explorer"
 DESCRIPTION = "Potentially useful utility for working with thrift files"
 URL = "https://github.com/Bachmann1234/thriftExplorer"
 EMAIL = "bachmann.matt@gmail.com"
