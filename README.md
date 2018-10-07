@@ -16,7 +16,7 @@ it will forward your request to it and return the response.
 
 ## Example Usage
 
-Example calls are provided as part of a [Postman Collection](ThriftExplorer.postman_collection.json). However. Lets walk though a basic session.
+Example calls are provided as part of a [Postman Collection](ThriftExplorer.postman_collection.json). However, Lets walk though a basic session.
 
 If you are working on a todo thrift service that you have running on your machine you can use thrift explorer to make calls to it. With the todo server running you 
 add the todo thrifts to thrift explorer and start the server. (I will be using [curl](https://curl.haxx.se/) to make requests and [jq](https://stedolan.github.io/jq/) to pretty print the responses)
