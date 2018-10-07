@@ -6,6 +6,8 @@ from flask import Flask, request
 
 from thrift_explorer.communication_models import (
     CommunicationModelEncoder,
+    Error,
+    ErrorCode,
     ThriftRequest,
 )
 from thrift_explorer.thrift_manager import ThriftManager
@@ -82,20 +84,28 @@ def create_app():
             return error
         if request.method == "POST":
             request_json = request.get_json(force=True)
-            # todo validate post body
-            thrift_request = ThriftRequest(
-                thrift_file=thrift,
-                service_name=service,
-                endpoint_name=method.name,
-                host=request_json.get("host"),
-                port=request_json.get("port"),
-                protocol=request_json.get("protocol", app.config[DEFAULT_PROTOCOL_ENV]),
-                transport=request_json.get(
-                    "transport", app.config[DEFAULT_TRANSPORT_ENV]
-                ),
-                request_body=request_json.get("request_body"),
-            )
-            errors = thrift_manager.validate_request(thrift_request)
+            errors = []
+            try:
+                thrift_request = ThriftRequest(
+                    thrift_file=thrift,
+                    service_name=service,
+                    endpoint_name=method.name,
+                    host=request_json.get("host"),
+                    port=request_json.get("port"),
+                    protocol=request_json.get(
+                        "protocol", app.config[DEFAULT_PROTOCOL_ENV]
+                    ),
+                    transport=request_json.get(
+                        "transport", app.config[DEFAULT_TRANSPORT_ENV]
+                    ),
+                    request_body=request_json.get("request_body"),
+                )
+                errors = thrift_manager.validate_request(thrift_request)
+            except ValueError as e:
+                errors = [Error(code=ErrorCode.INVALID_REQUEST, message=str(e))]
+            except TypeError as e:
+                errors = [Error(code=ErrorCode.INVALID_REQUEST, message=str(e.args[0]))]
+
             if errors:
                 return (
                     json.dumps(

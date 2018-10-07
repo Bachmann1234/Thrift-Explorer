@@ -76,13 +76,17 @@ class ThriftRequest(object):
             is dependent on the request being made
     """
 
-    thrift_file = attr.ib()
-    service_name = attr.ib()
-    endpoint_name = attr.ib()
-    host = attr.ib()
-    port = attr.ib(converter=int)
-    protocol = attr.ib(converter=Protocol.from_string)
-    transport = attr.ib(converter=Transport.from_string)
+    thrift_file = attr.ib(validator=attr.validators.instance_of(str))
+    service_name = attr.ib(validator=attr.validators.instance_of(str))
+    endpoint_name = attr.ib(validator=attr.validators.instance_of(str))
+    host = attr.ib(validator=attr.validators.instance_of(str))
+    port = attr.ib(validator=attr.validators.instance_of(int), converter=int)
+    protocol = attr.ib(
+        validator=attr.validators.in_(Protocol), converter=Protocol.from_string
+    )
+    transport = attr.ib(
+        validator=attr.validators.in_(Transport), converter=Transport.from_string
+    )
     request_body = attr.ib(default=attr.Factory(dict))
 
 
@@ -111,6 +115,7 @@ class ErrorCode(Enum):
     ENDPOINT_NOT_IN_SERVICE = auto()
     REQUIRED_FIELD_MISSING = auto()
     FIELD_VALIDATION_ERROR = auto()
+    INVALID_REQUEST = auto()
 
 
 @attr.s(frozen=True)

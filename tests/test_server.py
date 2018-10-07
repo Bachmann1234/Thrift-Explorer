@@ -159,3 +159,44 @@ def test_service_invalid_call(todo_server, todo_client, flask_client):
             }
         ]
     }
+
+
+def test_service_missing_host(todo_server, todo_client, flask_client):
+    response = flask_client.post(
+        "/todo/TodoService/createTask/",
+        data=json.dumps(
+            {
+                "port": 6000,
+                "request_body": {"description": "task 1", "dueDate": "12-12-2012"},
+            }
+        ),
+    )
+    assert response.status == "400 BAD REQUEST"
+    assert json.loads(response.data) == {
+        "errors": [
+            {
+                "code": "INVALID_REQUEST",
+                "message": "'host' must be <class 'str'> (got None that is a <class 'NoneType'>).",
+            }
+        ]
+    }
+
+
+def test_invalid_protocol(todo_server, todo_client, flask_client):
+    response = flask_client.post(
+        "/todo/TodoService/createTask/",
+        data=json.dumps(
+            {
+                "host": "localhost",
+                "transport": "batman!",
+                "port": 6000,
+                "request_body": {"description": "task 1", "dueDate": "12-12-2012"},
+            }
+        ),
+    )
+    assert response.status == "400 BAD REQUEST"
+    assert json.loads(response.data) == {
+        "errors": [
+            {"code": "INVALID_REQUEST", "message": "'batman!' is not a valid Transport"}
+        ]
+    }
