@@ -15,7 +15,7 @@ URL = "https://github.com/Bachmann1234/thriftExplorer"
 EMAIL = "bachmann.matt@gmail.com"
 AUTHOR = "Matt Bachmann"
 REQUIRES_PYTHON = ">=3.7.0"
-VERSION = 0.5
+VERSION = 0.6
 
 # What packages are required for this module to be executed?
 REQUIRED = ["thriftpy", "attrs", "flask"]
