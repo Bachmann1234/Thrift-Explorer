@@ -36,19 +36,19 @@ def test_list_services(flask_client):
     assert json.loads(response.data) == {
         "thrifts": [
             {
-                "methods": ["ping", "getVillain", "addVillain", "saveCase"],
+                "methods": ["addVillain", "getVillain", "ping", "saveCase"],
                 "service": "BatPuter",
                 "thrift": "Batman.thrift",
             },
             {
                 "methods": [
-                    "ping",
+                    "completeTask",
+                    "createTask",
+                    "fancyNewMethod",
+                    "getTask",
                     "listTasks",
                     "numTasks",
-                    "getTask",
-                    "createTask",
-                    "completeTask",
-                    "fancyNewMethod",
+                    "ping",
                 ],
                 "service": "TodoService",
                 "thrift": "todo.thrift",
@@ -62,7 +62,7 @@ def test_get_service_info(flask_client):
     assert response.status == "200 OK"
     assert (
         response.data
-        == b'{"thrift": "Batman.thrift", "service": "BatPuter", "methods": ["ping", "getVillain", "addVillain", "saveCase"]}'
+        == b'{"thrift": "Batman.thrift", "service": "BatPuter", "methods": ["addVillain", "getVillain", "ping", "saveCase"]}'
     )
 
 

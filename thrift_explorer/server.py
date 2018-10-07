@@ -55,10 +55,18 @@ def create_app():
                     {
                         "thrift": thrift_file,
                         "service": service,
-                        "methods": thrift_manager.list_methods(thrift_file, service),
+                        "methods": sorted(
+                            thrift_manager.list_methods(thrift_file, service)
+                        ),
                     }
                 )
-        return (json.dumps({"thrifts": result}), 200, JSON_CONTENT_TYPE)
+        return (
+            json.dumps(
+                {"thrifts": sorted(result, key=lambda service: service["thrift"])}
+            ),
+            200,
+            JSON_CONTENT_TYPE,
+        )
 
     @app.route("/<thrift>/", methods=["GET"])
     def get_thrift_definition(thrift):
@@ -76,7 +84,9 @@ def create_app():
             return error
         methods = thrift_manager.list_methods(thrift, service)
         return (
-            json.dumps({"thrift": thrift, "service": service, "methods": methods}),
+            json.dumps(
+                {"thrift": thrift, "service": service, "methods": sorted(methods)}
+            ),
             200,
             JSON_CONTENT_TYPE,
         )
