@@ -14,13 +14,86 @@ Thrift explorer is intended to be a tool aimed at developers who use thrift serv
 You place your service thrifts in a directory and configure Thrift Explorer to pull from it. Then make http calls to Thrift Explorer providing information such as host/port and 
 it will forward your request to it and return the response.
 
-## Installation
+## Installation and Running the server
 
-Install with pip!
+### Install with pip!
+
+If you are comfortable with python environments and python packaging you can install this with pip
 
 ```
 pip install thriftexplorer
 ```
+
+### Installation with docker
+
+If you would rather not work with the python directly you can pull down a docker container
+
+```
+docker pull bachmann1234/thrift-explorer
+```
+
+When running the docker container you are going to need to pass in a directory containing the thrifts the server will load in.
+This will be provided via the source parameter. In the example below I pass in the example-thrifts directory in this very repo 
+
+```
+docker run --mount type=bind,source=$(pwd)/example-thrifts,target=/thrifts -p 4000:80 bachmann1234/thrift-explorer
+```
+
+In english this command is saying "run the thrift-explorer server with example-thrifts as its thrift directory. Make it so that server is accessible to me at port 8000". You can also
+pass in other environment variables in this command to configure the server. See [Configuring the server](#configuring-the-server) for details.
+
+For a more detailed explanation of the docker command [consult the docker documentation](https://docs.docker.com/engine/reference/run/)
+
+One gotcha: When using the docker container you need to be mindful of how networking works with docker. For example. If you are running thrift-explorer with the docker container
+and you need it to access a service running on your localhost you would use the hostname "host.docker.internal" (at least on docker-for-mac). For example
+
+```
+curl -Ss -X POST \                                                                                                                                                                                                                             Sun Oct  7 11:52:14 2018
+                    http://localhost:4000/todo/TodoService/createTask/ \
+                    -H 'Content-Type: application/json' \
+                    -d '{
+                      "host": "host.docker.internal",
+                      "port": 6000,
+                      "protocol": "tbinaryprotocol",
+                      "transport": "tbufferedtransport",
+                      "request_body": {"description": "task 1", "dueDate": "12-12-2012"}
+                  }' | jq "."
+{
+  "status": "Success",
+  "request": {
+    "thrift_file": "todo.thrift",
+    "service_name": "TodoService",
+    "endpoint_name": "createTask",
+    "host": "host.docker.internal",
+    "port": 6000,
+    "protocol": "tbinaryprotocol",
+    "transport": "tbufferedtransport",
+    "request_body": {
+      "description": "task 1",
+      "dueDate": "12-12-2012"
+    }
+  },
+  "data": {
+    "__thrift_struct_class__": "Task",
+    "taskId": "2",
+    "description": "task 1",
+    "dueDate": "12-12-2012"
+  },
+  "time_to_make_request": "0:00:00.012562",
+  "time_to_connect": "0:00:00.001214"
+}
+```
+
+### Configuring the server 
+
+The service is configured via environment variables
+
+| Variable                 | Description                                                                   | Default            | Required |
+|--------------------------|-------------------------------------------------------------------------------|--------------------|----------|
+| THRIFT_DIRECTORY         | The directory where the thrifts you want the server to be aware of are stored |                    | Yes      |
+| DEFAULT_THRIFT_PROTOCOL  | What thrift protocol should the server assume if one is not provided          | TBinaryProtocol    | No       |
+| DEFAULT_THRIFT_TRANSPORT | What thrift transport should the server assume if one is not provided         | TBufferedTransport | No       |
+
 
 ## Example Usage
 
@@ -192,18 +265,6 @@ service TodoService {
 }
 ```
 
-## Running the flask server
-
-The service is configured via environment variables
-
-| Variable                 | Description                                                                   | Default            | Required |
-|--------------------------|-------------------------------------------------------------------------------|--------------------|----------|
-| THRIFT_DIRECTORY         | The directory where the thrifts you want the server to be aware of are stored |                    | Yes      |
-| DEFAULT_THRIFT_PROTOCOL  | What thrift protocol should the server assume if one is not provided          | TBinaryProtocol    | No       |
-| DEFAULT_THRIFT_TRANSPORT | What thrift transport should the server assume if one is not provided         | TBufferedTransport | No       |
-
-One you have configured the server you can run the flask development server or use your favorite WIGI HTTP server to run the service
-
 ## Running the example thrift server
 
 This repo contains some example thrifts and one example thrift service. See [Todo Thrift](/example-thrifts/todo.thrift) for a service definition.
@@ -214,3 +275,4 @@ To run it just set your pythonpath appropriately (see [My environment](/environm
 python tests/todoserver/service.py
 ```
 
+This service is intended as a development/testing aid. It is not required for useing thrift explorer
