@@ -209,7 +209,7 @@ export THRIFT_DIRECTORY=$(pwd)/example-thrifts/
 Then start it!
 
 ```
-gunicorn thrift_explorer.wsgi                                                                                                                                                                                                       Sun Oct  7 12:01:24 2018
+gunicorn thrift_explorer.wsgi 
 [2018-10-07 12:01:30 -0400] [7864] [INFO] Starting gunicorn 19.9.0
 [2018-10-07 12:01:30 -0400] [7864] [INFO] Listening at: http://127.0.0.1:8000 (7864)
 [2018-10-07 12:01:30 -0400] [7864] [INFO] Using worker: sync
