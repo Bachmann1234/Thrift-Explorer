@@ -1,9 +1,9 @@
 # Thrift Explorer
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
-[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://github.com/Bachmann1234/thriftExplorer/blob/master/LICENSE)
-[![Build Status](https://travis-ci.org/Bachmann1234/thriftExplorer.svg?branch=master)](https://travis-ci.org/Bachmann1234/thriftExplorer)
-[![Coverage Status](https://coveralls.io/repos/github/Bachmann1234/thriftExplorer/badge.svg?branch=master)](https://coveralls.io/github/Bachmann1234/thriftExplorer?branch=master)
-[![PyPI version](https://badge.fury.io/py/thriftexplorer.svg)](https://badge.fury.io/py/thriftexplorer)
+[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](https://github.com/Bachmann1234/thrift-explorer/blob/master/LICENSE)
+[![Build Status](https://travis-ci.org/Bachmann1234/thrift-explorer.svg?branch=master)](https://travis-ci.org/Bachmann1234/Thrift-Explorer)
+[![Coverage Status](https://coveralls.io/repos/github/Bachmann1234/thrift-explorer/badge.svg?branch=master)](https://coveralls.io/github/Bachmann1234/Thrift-Explorer?branch=master)
+[![PyPI version](https://badge.fury.io/py/thrift-explorer.svg)](https://badge.fury.io/py/thrift-explorer)
 
 [Apache Thrift](https://thrift.apache.org/) is a language agnostic framework that enables typed communication between services. 
 
