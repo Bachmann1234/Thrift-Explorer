@@ -69,15 +69,17 @@ def translate_request_body(endpoint, request_body, thrift_module):
     """
     processed_args = {}
     for arg_spec in endpoint.args:
-        # thrift_arg = getattr(thrift_module, "{}_args".format(endpoint.name))
-        # try:
-        #     ttype_code, name, required = thrift_arg
-        #     type_info = None
-        # except ValueError:
-        #     ttype_code, name, type_info, required = thrift_arg
+        thrift_arg = getattr(
+            thrift_module, "{}_args".format(endpoint.name)
+        ).thrift_spec[arg_spec.field_id]
+        try:
+            ttype_code, name, required = thrift_arg
+            type_info = None
+        except ValueError:
+            ttype_code, name, type_info, required = thrift_arg
         try:
             processed_args[arg_spec.name] = arg_spec.type_info.format_arg_for_thrift(
-                request_body[arg_spec.name], thrift_module
+                request_body[arg_spec.name], type_info
             )
         except KeyError:
             # We assume validation happened earlier so if an arg

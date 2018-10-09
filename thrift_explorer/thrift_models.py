@@ -96,16 +96,16 @@ class TStruct(ThriftType):
     fields = attr.ib()
     ttype = attr.ib(default="struct")
 
-    def format_arg_for_thrift(self, raw_arg, thrift_module):
-        clazz = getattr(thrift_module, self.name)
-        return clazz(
-            **{
-                field.name: field.type_info.format_arg_for_thrift(
-                    raw_arg[field.name], thrift_module
+    def format_arg_for_thrift(self, raw_arg, clazz):
+        class_args = {}
+        for field in self.fields:
+            try:
+                class_args[field.name] = field.type_info.format_arg_for_thrift(
+                    raw_arg[field.name], clazz
                 )
-                for field in self.fields
-            }
-        )
+            except KeyError:
+                continue  # we assume this is already validated. So the arg must be optional
+        return clazz(**class_args)
 
     def validate_arg(self, raw_arg):
         if not isinstance(raw_arg, dict):
