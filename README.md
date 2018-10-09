@@ -9,7 +9,9 @@
 
 Thrift explorer is intended to be a tool aimed at developers who use thrift services. Enabling the user to explore their services without having to write or maintain any code. 
 
-# This proejct is still in its infancy. Im starting to test it in the real world but I do not consider it stable yet
+# This project is alpha
+
+I am still finding fundemental issues with the implementation and am working though them. Slowly but surely
 
 ## How does this work
 
