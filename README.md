@@ -9,6 +9,8 @@
 
 Thrift explorer is intended to be a tool aimed at developers who use thrift services. Enabling the user to explore their services without having to write or maintain any code. 
 
+# This proejct is still in its infancy. Im starting to test it in the real world but I do not consider it stable yet
+
 ## How does this work
 
 You place your service thrifts in a directory and configure Thrift Explorer to pull from it. Then make http calls to Thrift Explorer providing information such as host/port and 

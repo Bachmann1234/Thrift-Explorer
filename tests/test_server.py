@@ -44,6 +44,7 @@ def test_list_services(flask_client):
                 "methods": [
                     "completeTask",
                     "createTask",
+                    "createTaskWithObject",
                     "fancyNewMethod",
                     "getTask",
                     "listTasks",
@@ -169,6 +170,7 @@ def test_service_invalid_call(todo_server, todo_client, flask_client):
         "errors": [
             {
                 "arg_spec": {
+                    "field_id": 1,
                     "name": "taskId",
                     "required": True,
                     "type_info": {"ttype": "string"},

@@ -68,6 +68,15 @@ class Dispatcher(object):
             )
         return self.getTask(cursor.lastrowid)
 
+    def createTaskWithObject(self, task):
+        with _get_db() as db:
+            cursor = db.cursor()
+            cursor.execute(
+                "insert into task (description, duedate) values(?, ?)",
+                (task.description, task.dueDate),
+            )
+        return self.getTask(cursor.lastrowid)
+
     def completeTask(self, task_id):
         with _get_db() as db:
             cursor = db.cursor()

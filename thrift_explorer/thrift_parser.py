@@ -57,7 +57,8 @@ def _parse_type(type_info):
         return TStruct(
             name=nested_type_info.__name__,
             fields=[
-                _parse_arg(result) for result in nested_type_info.thrift_spec.values()
+                _parse_arg(field_id, result)
+                for field_id, result in nested_type_info.thrift_spec.items()
             ],
         )
     # Its a basic type but has defined nested type info. its probably an enum
@@ -68,14 +69,17 @@ def _parse_type(type_info):
     )
 
 
-def _parse_arg(thrift_arg):  # Consider renaming?
+def _parse_arg(field_id, thrift_arg):  # Consider renaming?
     try:
         ttype_code, name, required = thrift_arg
         type_info = None
     except ValueError:
         ttype_code, name, type_info, required = thrift_arg
     return ThriftSpec(
-        name=name, type_info=_parse_type((ttype_code, type_info)), required=required
+        field_id=field_id,
+        name=name,
+        type_info=_parse_type((ttype_code, type_info)),
+        required=required,
     )
 
 
@@ -84,9 +88,13 @@ def _parse_thrift_endpoint(service, endpoint):
     endpoint_results = getattr(service, "{}_result".format(endpoint))
     return ServiceEndpoint(
         name=endpoint,
-        args=[_parse_arg(arg) for arg in endpoint_args.thrift_spec.values()],
+        args=[
+            _parse_arg(field_id, arg)
+            for field_id, arg in endpoint_args.thrift_spec.items()
+        ],
         results=[
-            _parse_arg(result) for result in endpoint_results.thrift_spec.values()
+            _parse_arg(field_id, result)
+            for field_id, result in endpoint_results.thrift_spec.items()
         ],
     )
 

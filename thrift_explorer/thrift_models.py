@@ -62,6 +62,8 @@ class ThriftSpec(object):
     """
     Container for the specification of an argument
     or a result.
+    name: field_id 
+        the id of the spec field
     name: str
         Name of the argument/result
     type_info: ThriftType
@@ -72,6 +74,7 @@ class ThriftSpec(object):
         False otherwise
     """
 
+    field_id = attr.ib()
     name = attr.ib()
     type_info = attr.ib()
     required = attr.ib()

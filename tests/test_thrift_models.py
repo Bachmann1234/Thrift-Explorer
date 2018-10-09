@@ -33,9 +33,12 @@ def superhero_struct():
     return TStruct(
         name="super_hero",
         fields=[
-            ThriftSpec(name="name", type_info=TString(), required=True),
+            ThriftSpec(field_id=1, name="name", type_info=TString(), required=True),
             ThriftSpec(
-                name="villains", type_info=TList(value_type=TString()), required=False
+                field_id=2,
+                name="villains",
+                type_info=TList(value_type=TString()),
+                required=False,
             ),
         ],
     )

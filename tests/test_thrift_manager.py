@@ -144,7 +144,9 @@ def test_required_argument_missing(example_thrift_manager):
     request = _build_request(endpoint_name="completeTask", request_body={})
     assert [
         FieldError(
-            arg_spec=ThriftSpec(name="taskId", type_info=TString(), required=True),
+            arg_spec=ThriftSpec(
+                field_id=1, name="taskId", type_info=TString(), required=True
+            ),
             code=ErrorCode.REQUIRED_FIELD_MISSING,
             message="Required Field 'taskId' not found",
         )
@@ -155,7 +157,9 @@ def test_request_body_has_invalid_data(example_thrift_manager):
     request = _build_request(endpoint_name="completeTask", request_body={"taskId": [4]})
     assert [
         FieldError(
-            arg_spec=ThriftSpec(name="taskId", type_info=TString(), required=True),
+            arg_spec=ThriftSpec(
+                field_id=1, name="taskId", type_info=TString(), required=True
+            ),
             code=ErrorCode.FIELD_VALIDATION_ERROR,
             message="Expected str but got list",
         )
