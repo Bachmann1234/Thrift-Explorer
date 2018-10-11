@@ -22,7 +22,7 @@ def test_basic_args():
     assert {"intParameter": 2, "stringParameter": "batman"} == translate_request_body(
         test_service.endpoints["returnInt"],
         {"intParameter": 2, "stringParameter": "batman"},
-        thrift_module,
+        getattr(thrift_module, "TestService"),
     )
 
 
@@ -30,7 +30,9 @@ def test_basic_args_skipping_missing_ones():
     thrift_module, service_specs = _parse_services_for_thrift("simpleType.thrift")
     test_service = service_specs["TestService"]
     assert {"intParameter": 2} == translate_request_body(
-        test_service.endpoints["returnInt"], {"intParameter": 2}, thrift_module
+        test_service.endpoints["returnInt"],
+        {"intParameter": 2},
+        getattr(thrift_module, "TestService"),
     )
 
 
@@ -38,7 +40,9 @@ def test_enum():
     enum_thrift, services = _parse_services_for_thrift("enum.thrift")
     hero_service = services["HeroService"]
     assert {"hero": enum_thrift.Superhero.BATMAN} == translate_request_body(
-        hero_service.endpoints["saveHero"], {"hero": "BATMAN"}, enum_thrift
+        hero_service.endpoints["saveHero"],
+        {"hero": "BATMAN"},
+        getattr(enum_thrift, "HeroService"),
     )
 
 
@@ -46,7 +50,9 @@ def test_map():
     collections_thrift, services = _parse_services_for_thrift("collections.thrift")
     test_service = services["TestService"]
     assert {"mapofI16toI64": {4: 5}} == translate_request_body(
-        test_service.endpoints["maps"], {"mapofI16toI64": {4: 5}}, collections_thrift
+        test_service.endpoints["maps"],
+        {"mapofI16toI64": {4: 5}},
+        getattr(collections_thrift, "TestService"),
     )
 
 
@@ -59,7 +65,7 @@ def test_collections():
     } == translate_request_body(
         test_service.endpoints["setsAndLists"],
         {"listOfDoubles": [1.0, 1.4, 9.323], "binarySet": {b"sdas", b"4232", b"bs"}},
-        collections_thrift,
+        getattr(collections_thrift, "TestService"),
     )
 
 
@@ -79,5 +85,5 @@ def test_struct():
                 "myOtherStruct": {"id": "4", "ints": [1, 2, 3]},
             }
         },
-        struct_thrift,
+        getattr(struct_thrift, "StructService"),
     )

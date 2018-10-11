@@ -52,7 +52,7 @@ def _find_transport_factory(transport):
     raise ValueError("Invalid transport {}".format(transport))
 
 
-def translate_request_body(endpoint, request_body, thrift_module):
+def translate_request_body(endpoint, request_body, thriftpy_service_class):
     """
     Translate the request dictionary into whatever arguments
     are required to make the call with the thrift client
@@ -65,12 +65,13 @@ def translate_request_body(endpoint, request_body, thrift_module):
     the service. The values should have been validated before hitting
     this method
 
-    thrift_module: thrift file as loaded in by thriftpy.load
+    thriftpy_service_class: the service class from thriftpy from module created 
+     when thriftpy loaded the thrift file
     """
     processed_args = {}
     for arg_spec in endpoint.args:
         thrift_arg = getattr(
-            thrift_module, "{}_args".format(endpoint.name)
+            thriftpy_service_class, "{}_args".format(endpoint.name)
         ).thrift_spec[arg_spec.field_id]
         try:
             ttype_code, name, required = thrift_arg

@@ -160,6 +160,50 @@ def test_service_method_post(todo_server, todo_client, flask_client):
     assert actual == expected
 
 
+def test_service_method_post_with_object_arg(todo_server, todo_client, flask_client):
+    response = flask_client.post(
+        "/todo/TodoService/createTaskWithObject/",
+        data=json.dumps(
+            {
+                "host": "127.0.0.1",
+                "port": 6000,
+                "request_body": {
+                    "task": {"description": "task 1", "dueDate": "12-12-2012"}
+                },
+            }
+        ),
+    )
+    assert response.status == "200 OK"
+
+    response = flask_client.post(
+        "/todo/TodoService/numTasks/",
+        data=json.dumps({"host": "127.0.0.1", "port": 6000, "request_body": {}}),
+    )
+    expected = {
+        "status": "Success",
+        "request": {
+            "thrift_file": "todo.thrift",
+            "service_name": "TodoService",
+            "endpoint_name": "numTasks",
+            "host": "127.0.0.1",
+            "port": 6000,
+            "protocol": "tbinaryprotocol",
+            "transport": "tbufferedtransport",
+            "request_body": {},
+        },
+        "data": 1,
+    }
+
+    actual = json.loads(response.data)
+    # Time wont be exact. But make sure we get properly formatted data
+    datetime.datetime.strptime(actual["time_to_make_request"], "%H:%M:%S.%f")
+    datetime.datetime.strptime(actual["time_to_connect"], "%H:%M:%S.%f")
+    del actual["time_to_make_request"]
+    del actual["time_to_connect"]
+    assert response.status == "200 OK"
+    assert actual == expected
+
+
 def test_service_invalid_call(todo_server, todo_client, flask_client):
     response = flask_client.post(
         "/todo/TodoService/completeTask/",

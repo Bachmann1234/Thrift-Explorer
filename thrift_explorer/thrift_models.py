@@ -99,9 +99,15 @@ class TStruct(ThriftType):
     def format_arg_for_thrift(self, raw_arg, clazz):
         class_args = {}
         for field in self.fields:
+            thrift_arg = clazz.thrift_spec[field.field_id]
+            try:
+                ttype_code, name, required = thrift_arg
+                type_info = None
+            except ValueError:
+                ttype_code, name, type_info, required = thrift_arg
             try:
                 class_args[field.name] = field.type_info.format_arg_for_thrift(
-                    raw_arg[field.name], clazz
+                    raw_arg[field.name], type_info
                 )
             except KeyError:
                 continue  # we assume this is already validated. So the arg must be optional
