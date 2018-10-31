@@ -321,6 +321,8 @@ class ThriftManager(object):
                 port=thrift_request.port,
                 proto_factory=_find_protocol_factory(thrift_request.protocol),
                 trans_factory=_find_transport_factory(thrift_request.transport),
+                socket_timeout=20000,
+                connect_timeout=3000,
             ) as client:
                 time_after_client = datetime.datetime.now() - time_before_client
                 return _make_client_call(
