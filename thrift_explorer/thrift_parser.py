@@ -5,7 +5,7 @@ thriftpy to our thrift service specification
 """
 from collections import defaultdict
 
-from thriftpy.thrift import TType
+from thriftpy2.thrift import TType
 
 from thrift_explorer.thrift_models import (
     TI16,

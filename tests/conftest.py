@@ -3,8 +3,8 @@ from multiprocessing import Process
 from time import sleep
 
 import pytest
-import thriftpy
-from thriftpy.rpc import make_client
+import thriftpy2
+from thriftpy2.rpc import make_client
 
 from thrift_explorer.thrift_manager import ThriftManager
 from thrift_explorer.thrift_models import ServiceEndpoint
@@ -25,7 +25,7 @@ def test_thrift_directory():
 
 @pytest.fixture(scope="session")
 def todo_thrift():
-    return thriftpy.load(
+    return thriftpy2.load(
         os.path.join(
             os.path.dirname(os.path.realpath(__file__)),
             "..",

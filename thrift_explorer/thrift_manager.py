@@ -3,14 +3,14 @@ import glob
 import os
 from collections import defaultdict
 
-import thriftpy
-from thriftpy import rpc as thriftpy_client
-from thriftpy.protocol import (
+import thriftpy2
+from thriftpy2 import rpc as thriftpy2_client
+from thriftpy2.protocol import (
     TBinaryProtocolFactory,
     TCompactProtocolFactory,
     TJSONProtocolFactory,
 )
-from thriftpy.thrift import TException
+from thriftpy2.thrift import TException
 
 from thrift_explorer.communication_models import (
     Error,
@@ -29,7 +29,7 @@ def _load_thrifts(thrift_directory):
     search_path = os.path.join(thrift_directory, "**/*thrift")
     for thrift_path in glob.iglob(search_path, recursive=True):
         thrift_filename = os.path.basename(thrift_path)
-        thrifts[thrift_filename] = thriftpy.load(thrift_path)
+        thrifts[thrift_filename] = thriftpy2.load(thrift_path)
         thrift_paths[thrift_filename] = thrift_path
     return thrifts, thrift_paths
 
@@ -46,13 +46,13 @@ def _find_protocol_factory(protocol):
 
 def _find_transport_factory(transport):
     if transport == Transport.BUFFERED:
-        return thriftpy.transport.TBufferedTransportFactory()
+        return thriftpy2.transport.TBufferedTransportFactory()
     elif transport == Transport.FRAMED:
-        return thriftpy.transport.TFramedTransportFactory()
+        return thriftpy2.transport.TFramedTransportFactory()
     raise ValueError("Invalid transport {}".format(transport))
 
 
-def translate_request_body(endpoint, request_body, thriftpy_service_class):
+def translate_request_body(endpoint, request_body, thriftpy2_service_class):
     """
     Translate the request dictionary into whatever arguments
     are required to make the call with the thrift client
@@ -65,13 +65,13 @@ def translate_request_body(endpoint, request_body, thriftpy_service_class):
     the service. The values should have been validated before hitting
     this method
 
-    thriftpy_service_class: the service class from thriftpy from module created 
-     when thriftpy loaded the thrift file
+    thriftpy2_service_class: the service class from thriftpy2 from module created 
+     when thriftpy2 loaded the thrift file
     """
     processed_args = {}
     for arg_spec in endpoint.args:
         thrift_arg = getattr(
-            thriftpy_service_class, "{}_args".format(endpoint.name)
+            thriftpy2_service_class, "{}_args".format(endpoint.name)
         ).thrift_spec[arg_spec.field_id]
         try:
             ttype_code, name, required = thrift_arg
@@ -116,9 +116,9 @@ def translate_thrift_response(response):
     return response
 
 
-def find_request_exceptions(thriftpy_service, thrift_request):
+def find_request_exceptions(thriftpy2_service, thrift_request):
     possible_results = getattr(
-        thriftpy_service, "{}_result".format(thrift_request.endpoint_name)
+        thriftpy2_service, "{}_result".format(thrift_request.endpoint_name)
     )
     exceptions = []
     for result in possible_results.thrift_spec.values():
@@ -129,10 +129,10 @@ def find_request_exceptions(thriftpy_service, thrift_request):
 
 
 def _make_client_call(
-    client, time_after_client, thrift_request, thriftpy_service, endpoint_spec
+    client, time_after_client, thrift_request, thriftpy2_service, endpoint_spec
 ):
     translated_request_body = translate_request_body(
-        endpoint_spec, thrift_request.request_body, thriftpy_service
+        endpoint_spec, thrift_request.request_body, thriftpy2_service
     )
     time_before_request = datetime.datetime.now()
     try:
@@ -140,7 +140,7 @@ def _make_client_call(
             **translated_request_body
         )
         status = "Success"
-    except find_request_exceptions(thriftpy_service, thrift_request) as exception:
+    except find_request_exceptions(thriftpy2_service, thrift_request) as exception:
         status = exception.__class__.__name__
         response = exception
     except TException as exception:
@@ -306,7 +306,7 @@ class ThriftManager(object):
         )
 
     def make_request(self, thrift_request):
-        thriftpy_service = getattr(
+        thriftpy2_service = getattr(
             self._thrifts[thrift_request.thrift_file], thrift_request.service_name
         )
         thrift_spec = self.service_specs[thrift_request.thrift_file]
@@ -315,8 +315,8 @@ class ThriftManager(object):
         ]
         time_before_client = datetime.datetime.now()
         try:
-            with thriftpy_client.client_context(
-                service=thriftpy_service,
+            with thriftpy2_client.client_context(
+                service=thriftpy2_service,
                 host=thrift_request.host,
                 port=thrift_request.port,
                 proto_factory=_find_protocol_factory(thrift_request.protocol),
@@ -329,7 +329,7 @@ class ThriftManager(object):
                     client,
                     time_after_client,
                     thrift_request,
-                    thriftpy_service,
+                    thriftpy2_service,
                     endpoint_spec,
                 )
         except TException as exception:

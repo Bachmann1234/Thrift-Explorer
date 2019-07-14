@@ -1,10 +1,10 @@
 import os
 import sqlite3
 
-import thriftpy
-from thriftpy.rpc import make_server
+import thriftpy2
+from thriftpy2.rpc import make_server
 
-todo_thrift = thriftpy.load(
+todo_thrift = thriftpy2.load(
     os.path.join(
         os.path.dirname(os.path.realpath(__file__)),
         "..",
